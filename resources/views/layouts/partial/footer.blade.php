@@ -6,7 +6,7 @@
                 <script>
                     document.write(new Date().getFullYear());
                 </script>
-                , developed by
+                developed by
                 <a href="#" target="_blank" class="footer-link">SIT Solutions Pvt Ltd</a>
             </div>
         </div>

@@ -7,8 +7,8 @@
 
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Subcategory List</h5>
-                <a href="{{ route('subcategory.create') }}" class="btn btn-primary">
+                <h5 class="mb-0">Brand List</h5>
+                <a href="{{ route('brand.create') }}" class="btn btn-primary">
                     <i class="bx bx-plus me-1"></i> Add
                 </a>
             </div>
@@ -18,9 +18,8 @@
                     <thead>
                         <tr>
                             <th>Sr.No.</th>
-                            <th>Subcategory </th>
-                            <th>Category </th>
-                            <th>Image </th>
+                            <th>Name</th>
+                            <th>Image</th>
                             <th>Description</th>
                             <th>Status</th>
                             <th>Actions</th>
@@ -28,7 +27,6 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td></td>
                             <td></td>
                             <td></td>
                             <td></td>
