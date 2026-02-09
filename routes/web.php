@@ -7,6 +7,8 @@ use App\Http\Controllers\BrandController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\PromoCodeController;
+use App\Http\Controllers\StoreController;
+use App\Http\Controllers\CustomerController;
 
 Auth::routes();
 
@@ -18,4 +20,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('role', RoleController::class);
     Route::resource('driver', DriverController::class);
     Route::resource('promo', PromoCodeController::class);
-});
+    Route::resource('store', StoreController::class);
+    Route::resource('customer', CustomerController::class);
+
+    Route::post('/category/update-feature', [CategoryController::class, 'updateFeature'])->name('category.update-feature');
+
+ });

@@ -122,7 +122,10 @@ class CategoryController extends Controller
             'sort_order' => ['required', 'integer', 'min:0'],
 
             'icon'  => ['nullable', 'image', 'max:1024'],
+            'icon_alt' => ['nullable', 'string', 'max:255'],
+            
             'image' => ['nullable', 'image', 'max:2048'],
+            'image_alt' => ['nullable', 'string', 'max:255'],
 
             // SEO
             'meta_title'       => ['nullable', 'string', 'max:255'],
@@ -130,8 +133,10 @@ class CategoryController extends Controller
             'meta_description' => ['nullable', 'string'],
             'canonical_url'    => ['nullable', 'url'],
             'og_image'         => ['nullable', 'image', 'max:2048'],
+            'og_image_alt'     => ['nullable', 'string', 'max:255'],
 
-            'is_active'    => ['nullable', 'boolean'],
+            'is_active'    
+            => ['nullable', 'boolean'],
             'is_indexable' => ['nullable', 'boolean'],
         ]);
     }
@@ -162,4 +167,15 @@ class CategoryController extends Controller
         $data['is_active']    = $request->boolean('is_active');
         $data['is_indexable'] = $request->boolean('is_indexable');
     }
+
+    /* ---------------- Show Selected On Homepage ---------------- */
+    public function updateFeature(Request $request)
+    {
+        $category = Category::find($request->id);
+        $category->featured = $request->featured;
+        $category->save();
+        return response()->json(['success' => true]);
+    }
+
+
 }
