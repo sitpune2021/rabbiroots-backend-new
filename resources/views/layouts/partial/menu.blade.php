@@ -78,5 +78,19 @@
                      <div class="text-truncate" data-i18n="Promo Codes">Promo Codes</div>
                  </a>
              </li>
+             <!-- Stores -->
+             <li class="menu-item {{ request()->is('store*') ? 'active open' : '' }}">
+                 <a href="{{ route('store.index') }}" class="menu-link">
+                     <i class="menu-icon tf-icons bx bx-building"></i>
+                     <div class="text-truncate" data-i18n="Stores">Stores</div>
+                 </a>
+             </li>
+             <!-- Customers -->
+             <li class="menu-item {{ request()->is('customer*') ? 'active open' : '' }}">
+                 <a href="{{ route('customer.index') }}" class="menu-link">
+                     <i class="menu-icon tf-icons bx bx-user-circle"></i>
+                     <div class="text-truncate" data-i18n="Customers">Customers</div>
+                 </a>
+             </li>
          </ul>
      </aside>
