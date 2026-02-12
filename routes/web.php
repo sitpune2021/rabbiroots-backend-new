@@ -9,6 +9,8 @@ use App\Http\Controllers\DriverController;
 use App\Http\Controllers\PromoCodeController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DeliveryAgentController;
+use Illuminate\Support\Facades\Auth;
 
 Auth::routes();
 
@@ -25,4 +27,7 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/category/update-feature', [CategoryController::class, 'updateFeature'])->name('category.update-feature');
 
- });
+    Route::resource('driver', DeliveryAgentController::class);
+    Route::put('driver/{id}/approve', [DeliveryAgentController::class, 'approve'])
+        ->name('driver.approve');
+});
