@@ -15,13 +15,13 @@ class CategoryController extends Controller
      */
     public function index(Request $request)
     {
-        $categories = Category::with('parent')
+        $categories = Category::with('children')
             ->active()
             ->when($request->level, fn ($q) =>
                 $q->where('level', $request->level)
             )
             ->orderBy('sort_order')
-            ->paginate($request->get('per_page', 10));
+            ->paginate($request->get('per_page', 20));
 
         return CategoryResource::collection($categories);
     }
@@ -59,4 +59,12 @@ class CategoryController extends Controller
     {
         //
     }
+
+    public function getSubCategories($mainId)
+    {
+        return Category::where('parent_id', $mainId)
+            ->where('level', 'sub')
+            ->get();
+    }
+
 }

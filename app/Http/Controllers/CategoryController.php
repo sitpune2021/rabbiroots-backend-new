@@ -14,9 +14,10 @@ class CategoryController extends Controller
 
     public function index()
     {
-        $categories = Category::with('parent')
+        $categories = Category::with('parent.parent')
             ->latest()
             ->paginate(20);
+            // dd($categories);
 
         return view('pages.category.index', compact('categories'));
     }
@@ -25,15 +26,16 @@ class CategoryController extends Controller
 
     public function create()
     {
-        $parents = Category::whereNull('parent_id')->active()->get();
-
-        return view('pages.category.create', compact('parents'));
+        $mainCategories = Category::where('level', 'main')->active()->get();
+        return view('pages.category.create', compact('mainCategories'));
     }
 
     /* ---------------- STORE ---------------- */
 
     public function store(Request $request)
     {
+        // dd($request->all());
+        // exit;
         $data = $this->validatedData($request);
 
         DB::transaction(function () use ($request, &$data) {
@@ -121,15 +123,15 @@ class CategoryController extends Controller
 
             'sort_order' => ['required', 'integer', 'min:0'],
 
-            'icon'  => ['nullable', 'image', 'max:1024'],
-            'image' => ['nullable', 'image', 'max:2048'],
+            'icon'  => ['nullable', 'max:1024'],
+            'image' => ['nullable', 'max:2048'],
 
             // SEO
             'meta_title'       => ['nullable', 'string', 'max:255'],
             'meta_keywords'    => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string'],
             'canonical_url'    => ['nullable', 'url'],
-            'og_image'         => ['nullable', 'image', 'max:2048'],
+            'og_image'         => ['nullable', 'max:2048'],
 
             'is_active'    => ['nullable', 'boolean'],
             'is_indexable' => ['nullable', 'boolean'],

@@ -20,12 +20,11 @@ class CategoryResource extends JsonResource
             'slug'          => $this->slug,
             'level'         => $this->level,
 
-            'parent' => $this->whenLoaded('parent', function () {
-                return [
-                    'id'   => $this->parent->id,
-                    'name' => $this->parent->name,
-                ];
+            'children' => $this->whenLoaded('children', function () {
+                return CategoryResource::collection($this->children);
             }),
+            'home_banner_image' => $this->image ? asset('storage/'.$this->image) : null,
+            'home_banner_image_alt' => $this->id . ' - ' . $this->name,
 
             'images' => [
                 'icon'  => $this->icon ? asset('storage/'.$this->icon) : null,
@@ -33,19 +32,19 @@ class CategoryResource extends JsonResource
                 'og'    => $this->og_image ? asset('storage/'.$this->og_image) : null,
             ],
 
-            'seo' => [
-                'meta_title'       => $this->meta_title,
-                'meta_description' => $this->meta_description,
-                'meta_keywords'    => $this->meta_keywords,
-                'canonical_url'    => $this->canonical_url,
-                'is_indexable'     => $this->is_indexable,
-            ],
+            // 'seo' => [
+            //     'meta_title'       => $this->meta_title,
+            //     'meta_description' => $this->meta_description,
+            //     'meta_keywords'    => $this->meta_keywords,
+            //     'canonical_url'    => $this->canonical_url,
+            //     'is_indexable'     => $this->is_indexable,
+            // ],
 
-            'sort_order' => $this->sort_order,
-            'is_active'  => (bool) $this->is_active,
+            // 'sort_order' => $this->sort_order,
+            // 'is_active'  => (bool) $this->is_active,
 
-            'created_at' => $this->created_at?->toISOString(),
-            'updated_at' => $this->updated_at?->toISOString(),
+            // 'created_at' => $this->created_at?->toISOString(),
+            // 'updated_at' => $this->updated_at?->toISOString(),
         ];
         // return parent::toArray($request);
     }

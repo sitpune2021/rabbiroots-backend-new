@@ -42,17 +42,17 @@
                              </div>
                          </a>
                      </li>
-                     <li class="menu-item {{ request()->is('subcategory*') ? 'active' : '' }}">
-                         <a href="{{ route('subcategory.index') }}" class="menu-link">
+                     <li class="menu-item {{ request()->is('products*') ? 'active' : '' }}">
+                         <a href="{{ route('products.index') }}" class="menu-link">
                              <div class="text-truncate" data-i18n="Products">
-                                 <i class="bx bx-sitemap me-1"></i> Subcategory
+                                 <i class="bx bx-package me-1"></i> Products
                              </div>
                          </a>
                      </li>
-                     <li class="menu-item {{ request()->is('product*') ? 'active' : '' }}">
-                         <a href="{{ route('product.index') }}" class="menu-link">
+                     <li class="menu-item {{ request()->is('stores*') ? 'active' : '' }}">
+                         <a href="{{ route('stores.index') }}" class="menu-link">
                              <div class="text-truncate" data-i18n="Products">
-                                 <i class="bx bx-package me-1"></i> Product
+                                 <i class="bx bx-package me-1"></i> Stores
                              </div>
                          </a>
                      </li>
