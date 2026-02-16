@@ -103,7 +103,7 @@
                         
               <div class="mb-6">
                 <label for="email" class="form-label">Email or Username <span class="text-danger">*</span></label>
-                <input type="text" class="form-control @error('email') is-invalid @enderror" id="email" name="email" placeholder="Enter your email or username" value="{{ old('email') }}" autocomplete="email" autofocus />
+                <input type="text" class="form-control @error('email') is-invalid @enderror" id="email" name="email" placeholder="Enter your email or username" value="superadmin@rabbiroots.com" autocomplete="email" autofocus />
                 @error('email')
                     <span class="invalid-feedback" role="alert">
                         <strong>{{ $message }}</strong>
@@ -114,7 +114,7 @@
               <div class="mb-6 form-password-toggle">
                 <label class="form-label" for="password">Password <span class="text-danger">*</span></label>
                 <div class="input-group input-group-merge">
-                  <input type="password" id="password" class="form-control @error('password') is-invalid @enderror" name="password" autocomplete="current-password" aria-describedby="password" />
+                  <input type="password" id="password" class="form-control @error('password') is-invalid @enderror" name="password" autocomplete="current-password" aria-describedby="password" value="SuperAdmin@123" />
                   <span class="input-group-text cursor-pointer"><i class="icon-base bx bx-hide"></i></span>
                   @error('password')
                     <span class="invalid-feedback" role="alert">

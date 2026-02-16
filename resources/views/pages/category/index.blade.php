@@ -124,6 +124,7 @@
                     <tbody>
                         @forelse($categories as $index => $category)
                             <tr class="{{ is_null($category->parent_id) ? 'main-category' : 'sub-category' }}">
+
                                 <td class="feature-column" style="display:none">
                                     @if ($category->level == 'main')
                                         <input type="checkbox" class="feature-checkbox" data-id="{{ $category->id }}"
@@ -143,12 +144,21 @@
                                 </td>
 
                                 <td>
-                                    {{ $category->parent?->name ?? '—' }}
+                                    @if ($category->level === 'child')
+                                        <strong>{{ $category->parent?->name }}</strong>
+                                        <br>
+                                        <small>{{ $category->parent?->parent?->name }}</small>
+                                    @elseif($category->level === 'sub')
+                                        <strong>{{ $category->parent?->name }}</strong>
+                                    @else
+                                        —
+                                    @endif
                                 </td>
 
+
                                 <td>
-                                    @if($category->image)
-                                        <img src="{{ asset('storage/'.$category->image) }}" class="rounded"
+                                    @if ($category->image)
+                                        <img src="{{ asset('storage/' . $category->image) }}" class="rounded"
                                             style="height:40px;">
                                     @else
                                         —
@@ -156,7 +166,7 @@
                                 </td>
 
                                 <td>
-                                    @if($category->is_active)
+                                    @if ($category->is_active)
                                         <span class="badge bg-label-success">Active</span>
                                     @else
                                         <span class="badge bg-label-danger">Inactive</span>
@@ -198,7 +208,7 @@
             </div>
 
             {{-- PAGINATION --}}
-        @if($categories->hasPages())
+        @if ($categories->hasPages())
                 <div class="card-footer d-flex justify-content-end">
                     {{ $categories->links('pagination::bootstrap-5') }}
                 </div>

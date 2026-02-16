@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             SuperAdminRoleSeeder::class,
             SuperAdminUserSeeder::class,
             StoreManagerRoleSeeder::class,
+            BrandSeeder::class,
             DeliveryAgentRoleSeeder::class,
         ]);
     }

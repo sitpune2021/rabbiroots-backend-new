@@ -5,7 +5,7 @@
     
     <div class="row mb-3">
         <div class="col-12">
-            <a href="{{ route('store.index') }}" class="btn btn-secondary">
+            <a href="{{ route('stores.index') }}" class="btn btn-secondary">
                 <i class="bx bx-arrow-back me-1"></i> Back to List
             </a>
         </div>
