@@ -3,8 +3,15 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\StoreController;
-use App\Http\Controllers\Subcategory;
 use App\Http\Controllers\ProductsController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\BrandController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\DriverController;
+use App\Http\Controllers\PromoCodeController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DeliveryAgentController;
+use Illuminate\Support\Facades\Auth;
 
 Auth::routes();
 
@@ -13,4 +20,16 @@ Route::middleware('auth')->group(function () {
     Route::resource('category', CategoryController::class);
     Route::resource('stores', StoreController::class);
     Route::resource('products', ProductsController::class);
+    Route::resource('product', ProductController::class);
+    Route::resource('brand', BrandController::class);
+    Route::resource('role', RoleController::class);
+    Route::resource('driver', DriverController::class);
+    Route::resource('promo', PromoCodeController::class);
+    Route::resource('customer', CustomerController::class);
+
+    Route::post('/category/update-feature', [CategoryController::class, 'updateFeature'])->name('category.update-feature');
+
+    Route::resource('driver', DeliveryAgentController::class);
+    Route::put('driver/{id}/approve', [DeliveryAgentController::class, 'approve'])
+        ->name('driver.approve');
 });

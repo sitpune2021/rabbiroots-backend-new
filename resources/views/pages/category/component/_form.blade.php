@@ -90,14 +90,14 @@
 
 
                 {{-- SORT ORDER --}}
-                <div class="col-md-4 mb-3">
+                <div class="col-md-6 mb-3">
                     <label for="sort_order" class="form-label">Sort Order *</label>
                     <input id="sort_order" type="number" name="sort_order" class="form-control"
                         value="{{ old('sort_order', $category->sort_order ?? 0) }}" min="0" required>
                 </div>
 
                 {{-- ICON --}}
-                <div class="col-md-4 mb-3">
+                <div class="col-md-6 mb-3">
                     <label class="form-label">Icon</label>
                     <input type="file" name="icon" class="form-control" accept="image/*">
                     @if (!empty($category?->icon))
@@ -106,14 +106,30 @@
                     @endif
                 </div>
 
+                {{-- ICON ALT TEXT --}}
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Icon Alt Text</label>
+                    <input type="text" name="icon_alt" class="form-control"
+                           value="{{ old('icon_alt', $category->icon_alt ?? '') }}"
+                           placeholder="Alternate text for icon">
+                </div>
+
                 {{-- IMAGE --}}
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Image</label>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Banner Image</label>
                     <input type="file" name="image" class="form-control" accept="image/*">
                     @if (!empty($category?->image))
                         <img src="{{ asset('storage/' . $category->image) }}" class="img-thumbnail mt-2"
                             style="max-height:60px;">
                     @endif
+                </div>
+
+                {{-- BANNER IMAGE ALT TEXT --}}
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Banner Alt Text</label>
+                    <input type="text" name="image_alt" class="form-control"
+                           value="{{ old('image_alt', $category->image_alt ?? '') }}"
+                           placeholder="Alternate text for banner">
                 </div>
 
                 {{-- ACTIVE --}}
@@ -173,6 +189,14 @@
                         <img src="{{ asset('storage/' . $category->og_image) }}" class="img-thumbnail mt-2"
                             style="max-height:60px;">
                     @endif
+                </div>
+
+                {{-- OG IMAGE ALT TEXT --}}
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">OG Image Alt Text</label>
+                    <input type="text" name="og_image_alt" class="form-control"
+                           value="{{ old('og_image_alt', $category->og_image_alt ?? '') }}"
+                           placeholder="Alternate text for OG image">
                 </div>
 
                 {{-- INDEXABLE --}}

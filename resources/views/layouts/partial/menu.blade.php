@@ -29,7 +29,7 @@
                  </a>
              </li>
              <li
-                 class="menu-item {{ request()->is('category*') || request()->is('subcategory*') ? 'active open' : '' }}">
+                 class="menu-item {{ request()->is('category*') || request()->is('brand*') || request()->is('product*') ? 'active open' : '' }}">
                  <a href="javascript:void(0);" class="menu-link menu-toggle">
                      <i class="menu-icon tf-icons bx bx-store"></i>
                      <div class="text-truncate" data-i18n="Catalog">Catalog</div>
@@ -49,6 +49,13 @@
                              </div>
                          </a>
                      </li>
+                     <li class="menu-item {{ request()->is('brand*') ? 'active' : '' }}">
+                         <a href="{{ route('brand.index') }}" class="menu-link">
+                             <div class="text-truncate" data-i18n="Brands">
+                                 <i class="bx bx-award me-1"></i> Brand
+                             </div>
+                         </a>
+                     </li>
                      <li class="menu-item {{ request()->is('stores*') ? 'active' : '' }}">
                          <a href="{{ route('stores.index') }}" class="menu-link">
                              <div class="text-truncate" data-i18n="Products">
@@ -58,5 +65,40 @@
                      </li>
                  </ul>
              </li>
-        </ul>
+             <!-- Roles -->
+             <li class="menu-item {{ request()->is('role*') ? 'active open' : '' }}">
+                 <a href="{{ route('role.index') }}" class="menu-link">
+                     <i class="menu-icon tf-icons bx bx-lock"></i>
+                     <div class="text-truncate" data-i18n="Roles">Roles</div>
+                 </a>
+             </li>
+             <!-- Drivers -->
+             <li class="menu-item {{ request()->is('driver*') ? 'active open' : '' }}">
+                 <a href="{{ route('driver.index') }}" class="menu-link">
+                     <i class="menu-icon tf-icons bx bx-car"></i>
+                     <div class="text-truncate" data-i18n="Drivers">Drivers</div>
+                 </a>
+             </li>
+             <!-- Promo Codes -->
+             <li class="menu-item {{ request()->is('promo*') ? 'active open' : '' }}">
+                 <a href="{{ route('promo.index') }}" class="menu-link">
+                     <i class="menu-icon tf-icons bx bx-tag"></i>
+                     <div class="text-truncate" data-i18n="Promo Codes">Promo Codes</div>
+                 </a>
+             </li>
+             <!-- Stores -->
+             <li class="menu-item {{ request()->is('store*') ? 'active open' : '' }}">
+                 <a href="{{ route('stores.index') }}" class="menu-link">
+                     <i class="menu-icon tf-icons bx bx-building"></i>
+                     <div class="text-truncate" data-i18n="Stores">Stores</div>
+                 </a>
+             </li>
+             <!-- Customers -->
+             <li class="menu-item {{ request()->is('customer*') ? 'active open' : '' }}">
+                 <a href="{{ route('customer.index') }}" class="menu-link">
+                     <i class="menu-icon tf-icons bx bx-user-circle"></i>
+                     <div class="text-truncate" data-i18n="Customers">Customers</div>
+                 </a>
+             </li>
+         </ul>
      </aside>

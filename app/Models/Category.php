@@ -13,15 +13,19 @@ class Category extends Model
         'slug',
         'level',
         'icon',
+        'icon_alt',
         'image',
+        'image_alt',
         'sort_order',
         'meta_title',
         'meta_description',
         'meta_keywords',
         'canonical_url',
         'og_image',
+        'og_image_alt',
         'is_indexable',
         'is_active',
+        'is_featured',
     ];
 
         /* ---------------- Relationships ---------------- */

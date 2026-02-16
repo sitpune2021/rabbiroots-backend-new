@@ -4,14 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class Product extends Controller
+class RoleController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-         return view('pages.product.index');
+        return view('pages.role.index');
     }
 
     /**
@@ -19,7 +19,7 @@ class Product extends Controller
      */
     public function create()
     {
-         return view('pages.product.create');
+        return view('pages.role.create');
     }
 
     /**
@@ -47,7 +47,7 @@ class Product extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update a resource in storage.
      */
     public function update(Request $request, string $id)
     {
@@ -55,7 +55,7 @@ class Product extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove a resource from storage.
      */
     public function destroy(string $id)
     {

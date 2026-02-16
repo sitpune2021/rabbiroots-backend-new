@@ -66,4 +66,9 @@ class User extends Authenticatable
     {
         return $query->where('store_id', $storeId);
     }
+
+    public function deliveryAgent()
+    {
+        return $this->hasOne(DeliveryAgent::class);
+    }
 }
