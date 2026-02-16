@@ -145,13 +145,13 @@ class LandingController extends Controller
 
 
             return response()->json([
-                'logo' => asset('images/logo.png'),
+                'logo' => asset('temp/logo/logo.png'),
                 'store' => Store::active()->select('id','name','code', 'latitude', 'longitude', 'delivery_radius_km')->first(),
-                'main_banner' => ['id' => 1, 'image' => asset('images/main-banner.jpg'), 'url' => '/category/fruits'],
+                'main_banner' => ['id' => 1, 'image' => asset('temp/banner/main-banner.webp'), 'url' => '/category/fruits'],
                 'slider_banners' => [
-                    ['id' => 1, 'image' => asset('images/slider1.jpg'), 'url' => '/category/fruits'],
-                    ['id' => 2, 'image' => asset('images/slider2.jpg'), 'url' => '/category/vegetables'],
-                    ['id' => 3, 'image' => asset('images/slider3.jpg'), 'url' => '/category/dairy'],
+                    ['id' => 1, 'image' => asset('temp/slider/slider1.avif'), 'url' => '/category/fruits'],
+                    ['id' => 2, 'image' => asset('temp/slider/slider2.avif'), 'url' => '/category/vegetables'],
+                    ['id' => 3, 'image' => asset('temp/slider/slider3.avif'), 'url' => '/category/dairy'],
                 ],
                 'top_categories' => $topCategories,
                 'featured_sections' => $sections,
