@@ -67,6 +67,7 @@ class BrandSeeder extends Seeder
                 'is_active' => true,
                 'is_featured' => $brand['is_featured'],
                 'sort_order' => $brand['sort_order'],
+                
             ]);
         }
 
