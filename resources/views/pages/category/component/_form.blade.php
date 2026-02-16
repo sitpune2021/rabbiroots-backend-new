@@ -2,13 +2,10 @@
     $isEdit = isset($category);
 @endphp
 
-<form
-    action="{{ $isEdit ? route('category.update', $category->id) : route('category.store') }}"
-    method="POST"
-    enctype="multipart/form-data"
->
+<form action="{{ $isEdit ? route('category.update', $category->id) : route('category.store') }}" method="POST"
+    enctype="multipart/form-data">
     @csrf
-    @if($isEdit)
+    @if ($isEdit)
         @method('PUT')
     @endif
 
@@ -25,59 +22,87 @@
                 <div class="col-md-6 mb-3">
                     <label for="name" class="form-label">Name *</label>
                     <input id="name" type="text" name="name" class="form-control"
-                           value="{{ old('name', $category->name ?? '') }}" required>
-                    @error('name') <small class="text-danger">{{ $message }}</small> @enderror
+                        value="{{ old('name', $category->name ?? '') }}" required>
+                    @error('name')
+                        <small class="text-danger">{{ $message }}</small>
+                    @enderror
                 </div>
 
                 {{-- SLUG --}}
                 <div class="col-md-6 mb-3">
                     <label for="slug" class="form-label">Slug *</label>
                     <input id="slug" type="text" name="slug" class="form-control"
-                           value="{{ old('slug', $category->slug ?? '') }}" required>
-                    @error('slug') <small class="text-danger">{{ $message }}</small> @enderror
+                        value="{{ old('slug', $category->slug ?? '') }}" required>
+                    @error('slug')
+                        <small class="text-danger">{{ $message }}</small>
+                    @enderror
                 </div>
 
                 {{-- LEVEL --}}
                 <div class="col-md-6 mb-3">
                     <label for="level" class="form-label">Level *</label>
                     <select id="level" name="level" class="form-select" required>
-                        @foreach(['main','sub','child'] as $level)
-                            <option value="{{ $level }}"
-                                @selected(old('level', $category->level ?? '') === $level)>
+                        @foreach (['main', 'sub', 'child'] as $level)
+                            <option value="{{ $level }}" @selected(old('level', $category->level ?? '') === $level)>
                                 {{ ucfirst($level) }}
                             </option>
                         @endforeach
                     </select>
-                    @error('level') <small class="text-danger">{{ $message }}</small> @enderror
+                    @error('level')
+                        <small class="text-danger">{{ $message }}</small>
+                    @enderror
                 </div>
 
                 {{-- PARENT CATEGORY --}}
-                <div class="col-md-6 mb-3">
+                {{-- <div class="col-md-6 mb-3">
                     <label for="parent_id" class="form-label">Parent Category</label>
                     <select id="parent_id" name="parent_id" class="form-select">
                         <option value="">— None —</option>
-                        @foreach($parents ?? [] as $parent)
-                            <option value="{{ $parent->id }}"
-                                @selected(old('parent_id', $category->parent_id ?? '') == $parent->id)>
+                        @foreach ($parents ?? [] as $parent)
+                            <option value="{{ $parent->id }}" @selected(old('parent_id', $category->parent_id ?? '') == $parent->id)>
                                 {{ $parent->name }}
                             </option>
                         @endforeach
                     </select>
+                </div> --}}
+
+                {{-- MAIN PARENT (For Sub + Child) --}}
+                <div class="col-md-6 mb-3 d-none" id="main_parent_wrapper">
+                    <label class="form-label">Main Category</label>
+                    <select name="main_parent_id" id="main_parent_id" class="form-select">
+                        <option value="">— Select Main Category —</option>
+                        @foreach ($mainCategories as $main)
+                            <option value="{{ $main->id }}">
+                                {{ $main->name }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
+
+                {{-- SUB PARENT (Only For Child) --}}
+                <div class="col-md-6 mb-3 d-none" id="sub_parent_wrapper">
+                    <label class="form-label">Sub Category</label>
+                    <select name="parent_id" id="sub_parent_id" class="form-select">
+                        <option value="">— Select Sub Category —</option>
+                    </select>
+                </div>
+
+
 
                 {{-- SORT ORDER --}}
                 <div class="col-md-6 mb-3">
                     <label for="sort_order" class="form-label">Sort Order *</label>
                     <input id="sort_order" type="number" name="sort_order" class="form-control"
-                           value="{{ old('sort_order', $category->sort_order ?? 0) }}" min="0" required>
+                        value="{{ old('sort_order', $category->sort_order ?? 0) }}" min="0" required>
                 </div>
 
                 {{-- ICON --}}
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Icon</label>
                     <input type="file" name="icon" class="form-control" accept="image/*">
-                    @if(!empty($category?->icon))
-                        <img src="{{ asset('storage/'.$category->icon) }}" class="img-thumbnail mt-2" style="max-height:60px;">
+                    @if (!empty($category?->icon))
+                        <img src="{{ asset('storage/' . $category->icon) }}" class="img-thumbnail mt-2"
+                            style="max-height:60px;">
                     @endif
                 </div>
 
@@ -93,8 +118,9 @@
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Banner Image</label>
                     <input type="file" name="image" class="form-control" accept="image/*">
-                    @if(!empty($category?->image))
-                        <img src="{{ asset('storage/'.$category->image) }}" class="img-thumbnail mt-2" style="max-height:60px;">
+                    @if (!empty($category?->image))
+                        <img src="{{ asset('storage/' . $category->image) }}" class="img-thumbnail mt-2"
+                            style="max-height:60px;">
                     @endif
                 </div>
 
@@ -110,7 +136,7 @@
                 <div class="col-md-12">
                     <div class="form-check form-switch">
                         <input type="checkbox" class="form-check-input" name="is_active" value="1"
-                               @checked(old('is_active', $category->is_active ?? true))>
+                            @checked(old('is_active', $category->is_active ?? true))>
                         <label class="form-check-label">Active</label>
                     </div>
                 </div>
@@ -132,14 +158,14 @@
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Meta Title</label>
                     <input type="text" name="meta_title" class="form-control"
-                           value="{{ old('meta_title', $category->meta_title ?? '') }}">
+                        value="{{ old('meta_title', $category->meta_title ?? '') }}">
                 </div>
 
                 {{-- META KEYWORDS --}}
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Meta Keywords</label>
                     <input type="text" name="meta_keywords" class="form-control"
-                           value="{{ old('meta_keywords', $category->meta_keywords ?? '') }}">
+                        value="{{ old('meta_keywords', $category->meta_keywords ?? '') }}">
                 </div>
 
                 {{-- META DESCRIPTION --}}
@@ -152,15 +178,16 @@
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Canonical URL</label>
                     <input type="text" name="canonical_url" class="form-control"
-                           value="{{ old('canonical_url', $category->canonical_url ?? '') }}">
+                        value="{{ old('canonical_url', $category->canonical_url ?? '') }}">
                 </div>
 
                 {{-- OG IMAGE --}}
                 <div class="col-md-6 mb-3">
                     <label class="form-label">OG Image</label>
                     <input type="file" name="og_image" class="form-control" accept="image/*">
-                    @if(!empty($category?->og_image))
-                        <img src="{{ asset('storage/'.$category->og_image) }}" class="img-thumbnail mt-2" style="max-height:60px;">
+                    @if (!empty($category?->og_image))
+                        <img src="{{ asset('storage/' . $category->og_image) }}" class="img-thumbnail mt-2"
+                            style="max-height:60px;">
                     @endif
                 </div>
 
@@ -176,7 +203,7 @@
                 <div class="col-md-12">
                     <div class="form-check form-switch">
                         <input type="checkbox" class="form-check-input" name="is_indexable" value="1"
-                               @checked(old('is_indexable', $category->is_indexable ?? true))>
+                            @checked(old('is_indexable', $category->is_indexable ?? true))>
                         <label class="form-check-label">Allow Indexing</label>
                     </div>
                 </div>
@@ -196,75 +223,123 @@
 
 {{-- SCRIPTS --}}
 @push('scripts')
-<script>
-    // Auto slug generation
-    document.getElementById('name').addEventListener('input', function () {
-        document.getElementById('slug').value = this.value
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)/g, '');
-    });
+    <script>
+        // Auto slug generation
+        document.getElementById('name').addEventListener('input', function() {
+            document.getElementById('slug').value = this.value
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/(^-|-$)/g, '');
+        });
+    </script>
 
-    // Level ↔ Parent logic
-    const level = document.getElementById('level');
-    const parent = document.getElementById('parent_id');
+    <script>
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
 
-    function toggleParent() {
-        if (level.value === 'main') {
-            parent.value = '';
-            parent.setAttribute('disabled', true);
-        } else {
-            parent.removeAttribute('disabled');
+            const form = this;
+            const formData = new FormData(form);
+
+            const levelSelect = document.getElementById('level');
+            const mainSelect = document.getElementById('main_parent_id');
+            const subSelect = document.getElementById('sub_parent_id');
+
+            const level = levelSelect.value;
+
+            if (level === 'main') {
+                formData.set('parent_id', '');
+            }
+
+            if (level === 'sub') {
+                formData.set('parent_id', mainSelect.value);
+            }
+
+            if (level === 'child') {
+                formData.set('parent_id', subSelect.value);
+            }
+
+            // Clear old errors
+            document.querySelectorAll('.error-text').forEach(el => el.textContent = '');
+
+            fetch(form.action, {
+                    method: form.method === 'POST' ? 'POST' : 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                })
+                .then(async response => {
+                    if (response.status === 422) {
+                        const data = await response.json();
+
+                        // Show validation errors
+                        Object.keys(data.errors).forEach(field => {
+                            const errorEl = document.querySelector(`.${field}_error`);
+                            if (errorEl) {
+                                errorEl.textContent = data.errors[field][0];
+                            }
+                        });
+
+                        throw new Error('Validation failed');
+                    }
+
+                    return response.json().catch(() => ({}));
+                })
+                .then(() => {
+                    // SUCCESS
+                    window.location.href = "{{ route('category.index') }}";
+                })
+                .catch(error => {
+                    console.warn(error.message);
+                });
+        });
+    </script>
+    <script>
+        const levelSelect = document.getElementById('level');
+        const mainWrapper = document.getElementById('main_parent_wrapper');
+        const subWrapper = document.getElementById('sub_parent_wrapper');
+        const mainSelect = document.getElementById('main_parent_id');
+        const subSelect = document.getElementById('sub_parent_id');
+
+        function handleLevelChange() {
+            const level = levelSelect.value;
+
+            mainWrapper.classList.add('d-none');
+            subWrapper.classList.add('d-none');
+
+            if (level === 'sub') {
+                mainWrapper.classList.remove('d-none');
+            }
+
+            if (level === 'child') {
+                mainWrapper.classList.remove('d-none');
+                subWrapper.classList.remove('d-none');
+            }
         }
-    }
 
-    level.addEventListener('change', toggleParent);
-    toggleParent();
-</script>
+        levelSelect.addEventListener('change', handleLevelChange);
 
-<script>
-document.querySelector('form').addEventListener('submit', function (e) {
-    e.preventDefault();
+        handleLevelChange();
 
-    const form = this;
-    const formData = new FormData(form);
+        // When main category changes → load sub categories
+        mainSelect.addEventListener('change', function() {
 
-    // Clear old errors
-    document.querySelectorAll('.error-text').forEach(el => el.textContent = '');
+            subSelect.innerHTML = '<option value="">Loading...</option>';
 
-    fetch(form.action, {
-        method: form.method === 'POST' ? 'POST' : 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
-            'Accept': 'application/json'
-        },
-        body: formData
-    })
-    .then(async response => {
-        if (response.status === 422) {
-            const data = await response.json();
+            fetch(`/api/categories/subcategories/${this.value}`)
+                .then(response => response.json())
+                .then(data => {
+                    subSelect.innerHTML = '<option value="">— Select Sub Category —</option>';
 
-            // Show validation errors
-            Object.keys(data.errors).forEach(field => {
-                const errorEl = document.querySelector(`.${field}_error`);
-                if (errorEl) {
-                    errorEl.textContent = data.errors[field][0];
-                }
-            });
-
-            throw new Error('Validation failed');
-        }
-
-        return response.json().catch(() => ({}));
-    })
-    .then(() => {
-        // SUCCESS
-        window.location.href = "{{ route('category.index') }}";
-    })
-    .catch(error => {
-        console.warn(error.message);
-    });
-});
-</script>
-
+                    data.forEach(sub => {
+                        subSelect.innerHTML += `
+                    <option value="${sub.id}">
+                        ${sub.name}
+                    </option>
+                `;
+                    });
+                });
+        });
+    </script>
 @endpush

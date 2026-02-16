@@ -28,7 +28,8 @@
                      {{-- <span class="badge rounded-pill bg-danger ms-auto">5</span> --}}
                  </a>
              </li>
-             <li class="menu-item {{ request()->is('category*') || request()->is('brand*') || request()->is('product*') ? 'active open' : '' }}">
+             <li
+                 class="menu-item {{ request()->is('category*') || request()->is('brand*') || request()->is('product*') ? 'active open' : '' }}">
                  <a href="javascript:void(0);" class="menu-link menu-toggle">
                      <i class="menu-icon tf-icons bx bx-store"></i>
                      <div class="text-truncate" data-i18n="Catalog">Catalog</div>
@@ -41,6 +42,13 @@
                              </div>
                          </a>
                      </li>
+                     <li class="menu-item {{ request()->is('products*') ? 'active' : '' }}">
+                         <a href="{{ route('products.index') }}" class="menu-link">
+                             <div class="text-truncate" data-i18n="Products">
+                                 <i class="bx bx-package me-1"></i> Products
+                             </div>
+                         </a>
+                     </li>
                      <li class="menu-item {{ request()->is('brand*') ? 'active' : '' }}">
                          <a href="{{ route('brand.index') }}" class="menu-link">
                              <div class="text-truncate" data-i18n="Brands">
@@ -48,10 +56,10 @@
                              </div>
                          </a>
                      </li>
-                     <li class="menu-item {{ request()->is('product*') ? 'active' : '' }}">
-                         <a href="{{ route('product.index') }}" class="menu-link">
+                     <li class="menu-item {{ request()->is('stores*') ? 'active' : '' }}">
+                         <a href="{{ route('stores.index') }}" class="menu-link">
                              <div class="text-truncate" data-i18n="Products">
-                                 <i class="bx bx-package me-1"></i> Product
+                                 <i class="bx bx-package me-1"></i> Stores
                              </div>
                          </a>
                      </li>
@@ -80,7 +88,7 @@
              </li>
              <!-- Stores -->
              <li class="menu-item {{ request()->is('store*') ? 'active open' : '' }}">
-                 <a href="{{ route('store.index') }}" class="menu-link">
+                 <a href="{{ route('stores.index') }}" class="menu-link">
                      <i class="menu-icon tf-icons bx bx-building"></i>
                      <div class="text-truncate" data-i18n="Stores">Stores</div>
                  </a>

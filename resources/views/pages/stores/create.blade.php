@@ -4,7 +4,7 @@
 <div class="container-xxl flex-grow-1 container-p-y">
     <div class="row mb-3">
         <div class="col-12">
-            <a href="{{ route('store.index') }}" class="btn btn-secondary">
+            <a href="{{ route('stores.index') }}" class="btn btn-secondary">
                 <i class="bx bx-arrow-back me-1"></i> Back to List
             </a>
         </div>
@@ -14,7 +14,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-body">
-                    <form action="{{ route('store.store') }}" method="POST">
+                    <form action="{{ route('stores.store') }}" method="POST">
                         @csrf
 
                         <div class="mb-3">
@@ -125,7 +125,7 @@
                                 <i class="bx bx-save me-1"></i> Add
                             </button>
 
-                            <a href="{{ route('store.index') }}" class="btn btn-secondary">
+                            <a href="{{ route('stores.index') }}" class="btn btn-secondary">
                                 Cancel
                             </a>
                         </div>
