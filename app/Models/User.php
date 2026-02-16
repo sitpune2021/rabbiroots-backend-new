@@ -8,11 +8,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Permission\Traits\HasRoles;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasRoles, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -24,6 +26,8 @@ class User extends Authenticatable
         'email',
         'phone',
         'password',
+        'otp',
+        'otp_expires_at',
         'store_id',
         'vendor_id',
         'is_active',
@@ -54,6 +58,7 @@ class User extends Authenticatable
             'last_login_at'     => 'datetime',
             'is_active'         => 'boolean',
             'password' => 'hashed',
+
         ];
     }
 
@@ -70,5 +75,15 @@ class User extends Authenticatable
     public function deliveryAgent()
     {
         return $this->hasOne(DeliveryAgent::class);
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'agent_id');
+    }
+
+    public function locations()
+    {
+        return $this->hasMany(AgentLocation::class, 'agent_id');
     }
 }
