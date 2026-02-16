@@ -206,7 +206,7 @@
                     </tbody>
                 </table>
             </div>
-
+            
             {{-- PAGINATION --}}
         @if ($categories->hasPages())
                 <div class="card-footer d-flex justify-content-end">
