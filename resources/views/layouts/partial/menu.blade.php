@@ -79,6 +79,38 @@
                      <div class="text-truncate" data-i18n="Drivers">Drivers</div>
                  </a>
              </li>
+             <!-- orders -->
+             <li
+                 class="menu-item {{ request()->is('admin/orders*') || request()->is('admin/orders*') || request()->is('admin/orders*') ? 'active open' : '' }}">
+                 <a href="javascript:void(0);" class="menu-link menu-toggle">
+                     <i class="menu-icon tf-icons bx bx-store"></i>
+                     <div class="text-truncate" data-i18n="Catalog">Orders</div>
+                 </a>
+                 <ul class="menu-sub">
+                     <li class="menu-item {{ request()->is('admin/orders*') ? 'active' : '' }}">
+                         <a href="{{ route('admin.orders.all') }}" class="menu-link">
+                             <div class="text-truncate" data-i18n="Products">
+                                 <i class="bx bx-category me-1"></i> All Orders
+                             </div>
+                         </a>
+                     </li>
+                     <li class="menu-item {{ request()->is('admin/orders/assigned*') ? 'active' : '' }}">
+                         <a href="{{ route('admin.orders.assigned') }}" class="menu-link">
+                             <div class="text-truncate" data-i18n="Products">
+                                 <i class="bx bx-package me-1"></i> Assigned Orders
+                             </div>
+                         </a>
+                     </li>
+                     <li class="menu-item {{ request()->is('admin/orders/delivered*') ? 'active' : '' }}">
+                         <a href="{{ route('admin.orders.delivered') }}" class="menu-link">
+                             <div class="text-truncate" data-i18n="Brands">
+                                 <i class="bx bx-award me-1"></i> Delivered Orders
+                             </div>
+                         </a>
+                     </li>
+                 </ul>
+             </li>
+
              <!-- Promo Codes -->
              <li class="menu-item {{ request()->is('promo*') ? 'active open' : '' }}">
                  <a href="{{ route('promo.index') }}" class="menu-link">
