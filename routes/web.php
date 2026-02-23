@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\StoreController;
@@ -20,10 +21,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('category', CategoryController::class);
     Route::resource('stores', StoreController::class);
     Route::resource('products', ProductsController::class);
-    Route::resource('product', ProductController::class);
+
     Route::resource('brand', BrandController::class);
     Route::resource('role', RoleController::class);
-    Route::resource('driver', DriverController::class);
+
     Route::resource('promo', PromoCodeController::class);
     Route::resource('customer', CustomerController::class);
 
@@ -32,4 +33,13 @@ Route::middleware('auth')->group(function () {
     Route::resource('driver', DeliveryAgentController::class);
     Route::put('driver/{id}/approve', [DeliveryAgentController::class, 'approve'])
         ->name('driver.approve');
+
+    Route::get('/orders', [OrderController::class, 'allOrders'])
+        ->name('admin.orders.all');
+
+    Route::get('/orders/assigned', [OrderController::class, 'assignedOrders'])
+        ->name('admin.orders.assigned');
+
+    Route::get('/orders/delivered', [OrderController::class, 'deliveredOrders'])
+        ->name('admin.orders.delivered');
 });

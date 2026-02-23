@@ -36,6 +36,11 @@ class User extends Authenticatable
         'email_verified_at',
     ];
 
+
+    protected $casts = [
+        'battery_updated_at' => 'datetime',
+    ];
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -74,7 +79,7 @@ class User extends Authenticatable
 
     public function deliveryAgent()
     {
-        return $this->hasOne(DeliveryAgent::class);
+        return $this->hasOne(DeliveryAgent::class ,'user_id');
     }
 
     public function orders()
@@ -85,5 +90,10 @@ class User extends Authenticatable
     public function locations()
     {
         return $this->hasMany(AgentLocation::class, 'agent_id');
+    }
+
+    public function assignedOrders()
+    {
+        return $this->hasMany(Order::class, 'agent_id');
     }
 }

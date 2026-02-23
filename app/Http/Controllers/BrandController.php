@@ -15,7 +15,7 @@ class BrandController extends Controller
      */
     public function index()
     {
-        $brands = Brand::latest()->paginate(1);
+        $brands = Brand::latest()->paginate(20);
         return view('pages.brand.index', compact('brands'));
     }
 
@@ -41,6 +41,7 @@ class BrandController extends Controller
         $data = $request->validated();
 
         Log::debug('Brand validated data', $data);
+        $data = $request->except('logo');
 
         if ($request->hasFile('logo')) {
             Log::info('Brand image upload detected', [
@@ -49,19 +50,19 @@ class BrandController extends Controller
             ]);
             $file = $request->file('logo');
 
-            $data['image'] = $file->storeAs(
+            $data['logo'] = $file->storeAs(
                 'brands',
                 $file->getClientOriginalName(),
                 'public'
             );
 
             Log::info('Brand image stored successfully', [
-                'path' => $data['image'],
+                'path' => $data['logo'],
             ]);
         } else {
             Log::warning('Brand store request without image');
         }
-
+  
         $brand = Brand::create($data);
 
         Log::info('Brand created successfully', [
@@ -107,35 +108,24 @@ class BrandController extends Controller
 
         Log::debug('Brand update validated data', $data);
 
-        // Handle logo update
         if ($request->hasFile('logo')) {
-
-            Log::info('Brand image update detected', [
-                'brand_id'      => $brand->id,
+            Log::info('Brand image upload detected', [
                 'original_name' => $request->file('logo')->getClientOriginalName(),
-                'size'          => $request->file('logo')->getSize(),
+                'size' => $request->file('logo')->getSize(),
             ]);
-
-            // Delete old image if exists
-            if ($brand->image && Storage::disk('public')->exists($brand->image)) {
-                Storage::disk('public')->delete($brand->image);
-
-                Log::info('Old brand image deleted', [
-                    'path' => $brand->image,
-                ]);
-            }
-
             $file = $request->file('logo');
 
-            $data['image'] = $file->storeAs(
+            $data['logo'] = $file->storeAs(
                 'brands',
                 $file->getClientOriginalName(),
                 'public'
             );
 
-            Log::info('New brand image stored', [
-                'path' => $data['image'],
+            Log::info('Brand image stored successfully', [
+                'path' => $data['logo'],
             ]);
+        } else {
+            Log::warning('Brand store request without image');
         }
 
         $brand->update($data);

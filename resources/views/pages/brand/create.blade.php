@@ -70,10 +70,10 @@
                                 @endif
 
                                 {{-- Show existing logo --}}
-                                @if(!empty($brand?->image))
+                                @if(!empty($brand?->logo))
                                 <div class="mt-2">
                                     <img
-                                        src="{{ asset('storage/' . $brand->image) }}"
+                                        src="{{ asset('storage/' . $brand->logo) }}"
                                         alt="Brand Logo"
                                         class="rounded border"
                                         style="max-width:150px;">
@@ -102,6 +102,39 @@
                                         {{ $isView ? 'disabled' : '' }}>
                                     <label class="form-check-label" for="is_active">Active</label>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- SEO INFORMATION --}}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">SEO Information</h5>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row">
+                            {{-- META TITLE --}}
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Meta Title</label>
+                                <input type="text" name="meta_title" class="form-control" placeholder="Meta Title"
+                                    value="{{ old('meta_title', $brand->meta_title ?? '') }}">
+                            </div>
+
+                            {{-- META KEYWORDS --}}
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Meta Keywords</label>
+                                <input type="text" name="meta_keywords" class="form-control" placeholder="Meta Keywords"
+                                    value="{{ old('meta_keywords', $brand->meta_keywords ?? '') }}">
+                            </div>
+
+                            {{-- META DESCRIPTION --}}
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Meta Description</label>
+                                <textarea name="meta_description" rows="3"
+                                placeholder="Meta Description" 
+                                class="form-control">{{ old('meta_description', $brand->meta_description ?? '') }}</textarea>
                             </div>
                         </div>
                     </div>
