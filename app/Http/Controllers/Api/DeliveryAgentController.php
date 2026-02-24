@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Password;
 
 class DeliveryAgentController extends Controller
 {
-   
+
 
     /**
      * Display a listing of the resource.
@@ -40,10 +40,7 @@ class DeliveryAgentController extends Controller
      * Store a newly created resource in storage.
      */
 
-    public function store()
-    {
-      
-    }
+    public function store() {}
 
 
     // goOnline API
@@ -236,10 +233,10 @@ class DeliveryAgentController extends Controller
         $agent = auth()->user();
 
         /*
-    |--------------------------------------------------------------------------
-    | 🔋 Battery Check Start
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | 🔋 Battery Check Start
+        |--------------------------------------------------------------------------
+        */
 
         // 1️⃣ Check if battery data exists
         if (is_null($agent->battery_level) || is_null($agent->battery_updated_at)) {
@@ -552,5 +549,31 @@ class DeliveryAgentController extends Controller
                 'message' => 'Something went wrong'
             ], 500);
         }
+    }
+
+
+    // get profile details
+    public function profile()
+    {
+        $user = auth()->user()->load('deliveryAgent.location');
+
+        if (!$user->deliveryAgent) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Agent profile not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'vehicle' => $user->deliveryAgent,
+                'location' => $user->deliveryAgent->location
+            ]
+        ]);
     }
 }

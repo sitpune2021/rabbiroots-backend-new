@@ -80,7 +80,7 @@ class User extends Authenticatable
 
     public function deliveryAgent()
     {
-        return $this->hasOne(DeliveryAgent::class ,'user_id');
+        return $this->hasOne(DeliveryAgent::class, 'user_id');
     }
 
     public function orders()

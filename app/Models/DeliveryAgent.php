@@ -38,4 +38,9 @@ class DeliveryAgent extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function location()
+    {
+        return $this->hasOne(AgentLocation::class, 'agent_id', 'user_id');
+    }
 }

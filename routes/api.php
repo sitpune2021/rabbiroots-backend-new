@@ -19,6 +19,7 @@ Route::post('/forgot-password', [DriverAuthController::class, 'forgotPassword'])
 
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/agent/profile', [DeliveryAgentController::class, 'profile']);
 
     Route::get('/orders/dashboard-count', [DashboardController::class, 'agentOrderCount']);
 
@@ -38,5 +39,4 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/agent/update-battery', [DeliveryAgentController::class, 'updateBattery']);
     Route::post('/agent/order/complete', [OrderController::class, 'completeOrder']);
     Route::post('/agent/heartbeat', [OrderController::class, 'heartbeat']);
-
 });
