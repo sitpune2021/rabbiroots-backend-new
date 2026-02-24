@@ -54,6 +54,14 @@ class BrandRequest extends FormRequest
                 'max:1000',
             ],
 
+            // SEO
+            'meta_title'       => ['nullable', 'string', 'max:255'],
+            'meta_keywords'    => ['nullable', 'string', 'max:255'],
+            'meta_description' => ['nullable', 'string'],
+            'canonical_url'    => ['nullable', 'url'],
+            'og_image'         => ['nullable', 'max:2048'],
+            'og_image_alt'     => ['nullable', 'string', 'max:255'],
+
 
             'is_active' => [
                 'required',

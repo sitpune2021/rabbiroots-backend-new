@@ -33,8 +33,9 @@
 
                                 {{-- Logo --}}
                                 <td>
-                                    @if($brand->image)
-                            <img src="{{ asset('storage/'.$brand->image) }}"
+                                    
+                                    @if($brand->logo)
+                            <img src="{{ asset('storage/'.$brand->logo) }}"
                                 width="50"
                                             class="rounded border">
                                     @else
