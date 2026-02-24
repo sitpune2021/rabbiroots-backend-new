@@ -40,175 +40,9 @@ class DeliveryAgentController extends Controller
      * Store a newly created resource in storage.
      */
 
-    public function store(DeliveryAgentRequest $request)
+    public function store()
     {
-        Log::info('Delivery Agent Registration Started', [
-            'phone' => $request->phone ?? null,
-            'email' => $request->email ?? null,
-            'device_id' => $request->device_id,
-        ]);
-
-        DB::beginTransaction();
-
-        try {
-
-            /*
-        |--------------------------------------------------------------------------
-        | 1️⃣ Create User
-        |--------------------------------------------------------------------------
-        */
-            $user = User::create([
-                'role' => 3,
-                'name'      => $request->name,
-                'phone'     => $request->phone,
-                'email'     => $request->email,
-                'password'  => Hash::make(Str::random(10)),
-                'is_active' => false,
-            ]);
-
-            $user->assignRole('delivery_agent');
-
-            /*
-        |--------------------------------------------------------------------------
-        | 2️⃣ Upload Documents
-        |--------------------------------------------------------------------------
-        */
-
-            $documents = [];
-
-            if ($request->hasFile('driving_license_doc')) {
-
-                $file = $request->file('driving_license_doc');
-                $fileName = $file->getClientOriginalName(); // prevent duplicate names
-
-                $file->storeAs('delivery_agents/licenses', $fileName, 'public');
-
-                $documents['driving_license_doc'] = $fileName;
-            }
-
-            if ($request->hasFile('vehicle_registration_doc')) {
-
-                $file = $request->file('vehicle_registration_doc');
-                $fileName = $file->getClientOriginalName();
-
-                $file->storeAs('delivery_agents/vehicle_docs', $fileName, 'public');
-
-                $documents['vehicle_registration_doc'] = $fileName;
-            }
-
-            if ($request->hasFile('insurance_doc')) {
-
-                $file = $request->file('insurance_doc');
-                $fileName = $file->getClientOriginalName();
-
-                $file->storeAs('delivery_agents/insurance', $fileName, 'public');
-
-                $documents['insurance_doc'] = $fileName;
-            }
-
-            if ($request->hasFile('aadhar_doc')) {
-
-                $file = $request->file('aadhar_doc');
-                $fileName = $file->getClientOriginalName();
-
-                $file->storeAs('delivery_agents/aadhar', $fileName, 'public');
-
-                $documents['aadhar_doc'] = $fileName;
-            }
-
-            if ($request->hasFile('pan_doc')) {
-
-                $file = $request->file('pan_doc');
-                $fileName = $file->getClientOriginalName();
-
-                $file->storeAs('delivery_agents/pan', $fileName, 'public');
-
-                $documents['pan_doc'] = $fileName;
-            }
-
-
-            /*
-        |--------------------------------------------------------------------------
-        | 3️⃣ Create Delivery Agent Profile
-        |--------------------------------------------------------------------------
-        */
-            $agent = DeliveryAgent::create([
-
-                // Relation
-                'user_id' => $user->id,
-
-                // Default system fields
-                'rating_avg' => 5.0,
-                'dead_phone_incidents' => 0,
-                'is_available' => false,
-
-                // Personal Details
-                'dob' => $request->dob,
-                'aadhar_number' => $request->aadhar_number,
-                'pan_number' => $request->pan_number,
-                'permanent_address' => $request->permanent_address,
-                'temporary_address' => $request->temporary_address,
-
-                // License Details
-                'license_number' => $request->license_number,
-                'license_type' => $request->license_type,
-                'license_issue_date' => $request->license_issue_date,
-                'license_expiry_date' => $request->license_expiry_date,
-
-                // Vehicle Details
-                'vehicle_type' => $request->vehicle_type,
-                'vehicle_name' => $request->vehicle_name,
-                'vehicle_model' => $request->vehicle_model,
-                'vehicle_number' => $request->vehicle_number,
-                'license_plate' => $request->license_plate,
-                'vehicle_capacity' => $request->vehicle_capacity,
-                'registration_number' => $request->registration_number,
-                'insurance_policy_number' => $request->insurance_policy_number,
-
-                // Documents
-                'driving_license_doc' => $documents['driving_license_doc'] ?? null,
-                'vehicle_registration_doc' => $documents['vehicle_registration_doc'] ?? null,
-                'insurance_doc' => $documents['insurance_doc'] ?? null,
-                'aadhar_doc' => $documents['aadhar_doc'] ?? null,
-                'pan_doc' => $documents['pan_doc'] ?? null,
-
-                // App Info
-                'device_id' => $request->device_id,
-                'app_version' => $request->app_version,
-
-                'vendor_id' => $request->vendor_id,
-            ]);
-
-            DB::commit();
-
-            Log::info('Delivery Agent Registration Completed', [
-                'user_id' => $user->id,
-                'agent_id' => $agent->id,
-            ]);
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Registration successful. Awaiting approval.',
-                'data' => [
-                    'user_id' => $user->id,
-                    'phone' => $user->phone,
-                ]
-            ], 201);
-        } catch (\Exception $e) {
-
-            DB::rollBack();
-
-            Log::error('Delivery Agent Registration Failed', [
-                'error_message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]);
-
-            return response()->json([
-                'status' => false,
-                'message' => 'Registration failed',
-            ], 500);
-        }
+      
     }
 
 
@@ -217,9 +51,9 @@ class DeliveryAgentController extends Controller
     {
         $agent = auth()->user();
 
-        $agent->update([
-            'is_online' => true,
-            'is_available' => true
+        $agent->deliveryAgent()->update([
+            'is_online' => 1,
+            'is_available' => 1
         ]);
 
         return response()->json([
@@ -233,9 +67,9 @@ class DeliveryAgentController extends Controller
     {
         $agent = auth()->user();
 
-        $agent->update([
-            'is_online' => false,
-            'is_available' => false
+        $agent->deliveryAgent()->update([
+            'is_online' => 0,
+            'is_available' => 0
         ]);
 
         return response()->json([
@@ -317,25 +151,6 @@ class DeliveryAgentController extends Controller
         }
     }
 
-    // Haversine Formula (Distance Calculation)
-    // function calculateDistance($lat1, $lon1, $lat2, $lon2)
-    // {
-    //     $earthRadius = 6371;
-
-    //     $dLat = deg2rad($lat2 - $lat1);
-    //     $dLon = deg2rad($lon2 - $lon1);
-
-    //     $a = sin($dLat / 2) * sin($dLat / 2) +
-    //         cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-    //         sin($dLon / 2) * sin($dLon / 2);
-
-    //     $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-
-    //     return $earthRadius * $c;
-    // }
-
-
-
     // Assign Logic (Service Layer Recommended)
     public function assignOrder($orderId)
     {
@@ -384,69 +199,6 @@ class DeliveryAgentController extends Controller
 
         return true;
     }
-
-    // AGENT ACCEPT / REJECT ORDER
-    // Accept Order
-    // public function acceptOrder(Request $request)
-    // {
-    //     Log::info('Accept Order API Hit', [
-    //         'request_data' => $request->all(),
-    //         'agent_id' => auth()->id()
-    //     ]);
-
-    //     $order = Order::find($request->order_id);
-
-    //     if (!$order) {
-    //         Log::error('Order not found', [
-    //             'order_id' => $request->order_id
-    //         ]);
-
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'Order not found'
-    //         ], 404);
-    //     }
-
-    //     Log::info('Order Found', [
-    //         'order_id' => $order->id,
-    //         'current_status' => $order->status
-    //     ]);
-
-    //     if ($order->status != 'assigned') {
-    //         Log::warning('Invalid order status', [
-    //             'order_id' => $order->id,
-    //             'status' => $order->status
-    //         ]);
-
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'Invalid order status'
-    //         ], 400);
-    //     }
-
-    //     $order->update(['status' => 'accepted']);
-
-    //     Log::info('Order Accepted', [
-    //         'order_id' => $order->id,
-    //         'accepted_by' => auth()->id()
-    //     ]);
-
-    //     OrderStatusLog::create([
-    //         'order_id' => $order->id,
-    //         'status' => 'accepted',
-    //         'updated_by' => auth()->id()
-    //     ]);
-
-    //     Log::info('OrderStatusLog Inserted', [
-    //         'order_id' => $order->id
-    //     ]);
-
-    //     return response()->json([
-    //         'status' => true,
-    //         'message' => 'Order accepted'
-    //     ]);
-    // }
-
 
     // Battery level must be sent from mobile app to backend.
     public function updateBattery(Request $request)

@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\{CategoryController, LandingController, DeliveryAgentController, OrderController};
+use App\Http\Controllers\Api\{CategoryController, DashboardController, LandingController, DeliveryAgentController, OrderController};
 use App\Http\Controllers\Api\Auth\DriverAuthController;
 use App\Services\OrderAssignmentService;
 
@@ -17,6 +17,8 @@ Route::post('/forgot-password', [DriverAuthController::class, 'forgotPassword'])
 
 Route::middleware('auth:sanctum')->group(function () {
 
+    Route::get('/orders/dashboard-count', [DashboardController::class, 'agentOrderCount']);
+
     Route::post('/agent/go-online', [DeliveryAgentController::class, 'goOnline']);
     Route::post('/agent/go-offline', [DeliveryAgentController::class, 'goOffline']);
 
@@ -24,14 +26,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('drivers', DeliveryAgentController::class);
     Route::post('/agent/order/complete', [OrderController::class, 'completeOrder']);
-
-    // Route::get('/test-assign/{id}', function ($id) {
-
-    //     $service = new OrderAssignmentService();
-    //     $result = $service->assignOrder($id);
-
-    //     return response()->json($result);
-    // });
 
     Route::post('/orders/{id}/assign', [OrderController::class, 'assign']);
     Route::post('/agent/accept-order', [DeliveryAgentController::class, 'acceptOrder']);
@@ -41,7 +35,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/agent/update-battery', [DeliveryAgentController::class, 'updateBattery']);
     Route::post('/agent/order/complete', [OrderController::class, 'completeOrder']);
     Route::post('/agent/heartbeat', [OrderController::class, 'heartbeat']);
-
 });
 
 Route::get('/landing', [LandingController::class, 'index']);
