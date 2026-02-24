@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\{CategoryController, LandingController, DeliveryAgentController, OrderController};
+use App\Http\Controllers\Api\{CategoryController, LandingController, DeliveryAgentController, OrderController, ProductController};
 use App\Http\Controllers\Api\Auth\DriverAuthController;
 use App\Services\OrderAssignmentService;
 
@@ -16,7 +16,7 @@ Route::post('/send-otp', [DriverAuthController::class, 'sendOtp']);
 Route::post('/verify-otp', [DriverAuthController::class, 'verifyOtp']);
 Route::post('/logout', [DriverAuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::post('/forgot-password', [DriverAuthController::class, 'forgotPassword']);
-
+Route::get('/product/{id}', [ProductController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
 
