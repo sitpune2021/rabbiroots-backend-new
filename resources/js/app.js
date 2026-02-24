@@ -282,14 +282,14 @@ document.addEventListener("DOMContentLoaded", function () {
         qsa(".invalid-feedback").forEach(el => el.remove());
         qsa(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
 
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = "Saving...";
+        // submitBtn.disabled = true;
+        // submitBtn.innerHTML = "Saving...";
 
         fetch(form.action, {
             method: "POST",
             headers: {
-                "X-Requested-With": "XMLHttpRequest",
-                "X-CSRF-TOKEN": qs("input[name='_token']").value
+                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                'Accept': 'application/json'
             },
             body: formData
         })
@@ -307,8 +307,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 else console.error(err);
             })
             .finally(() => {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = config.isEdit ? "Update Product" : "Create Product";
+                // submitBtn.disabled = false;
+                // submitBtn.innerHTML = config.isEdit ? "Update Product" : "Create Product";
             });
     });
 
