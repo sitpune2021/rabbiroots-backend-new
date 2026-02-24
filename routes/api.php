@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\{CategoryController, LandingController, DeliveryAgentController, OrderController, ProductController};
+use App\Http\Controllers\Api\{CategoryController, DashboardController, LandingController, DeliveryAgentController, OrderController, ProductController};
 use App\Http\Controllers\Api\Auth\DriverAuthController;
 use App\Services\OrderAssignmentService;
 
@@ -19,6 +19,9 @@ Route::post('/forgot-password', [DriverAuthController::class, 'forgotPassword'])
 Route::get('/product/{id}', [ProductController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/agent/profile', [DeliveryAgentController::class, 'profile']);
+
+    Route::get('/orders/dashboard-count', [DashboardController::class, 'agentOrderCount']);
 
     Route::post('/agent/go-online', [DeliveryAgentController::class, 'goOnline']);
     Route::post('/agent/go-offline', [DeliveryAgentController::class, 'goOffline']);
@@ -28,14 +31,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('drivers', DeliveryAgentController::class);
     Route::post('/agent/order/complete', [OrderController::class, 'completeOrder']);
 
-    // Route::get('/test-assign/{id}', function ($id) {
-
-    //     $service = new OrderAssignmentService();
-    //     $result = $service->assignOrder($id);
-
-    //     return response()->json($result);
-    // });
-
     Route::post('/orders/{id}/assign', [OrderController::class, 'assign']);
     Route::post('/agent/accept-order', [DeliveryAgentController::class, 'acceptOrder']);
     Route::post('/agent/reject-order', [DeliveryAgentController::class, 'rejectOrder']);
@@ -44,5 +39,4 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/agent/update-battery', [DeliveryAgentController::class, 'updateBattery']);
     Route::post('/agent/order/complete', [OrderController::class, 'completeOrder']);
     Route::post('/agent/heartbeat', [OrderController::class, 'heartbeat']);
-
 });
