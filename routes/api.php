@@ -10,3 +10,4 @@ use App\Http\Controllers\Api\{CategoryController, LandingController, DeliveryAge
 
 Route::apiResource('delivery_agent', DeliveryAgentController::class);
 Route::get('/landing', [LandingController::class, 'index']);
+Route::get('/listing', [LandingController::class, 'listing']);
