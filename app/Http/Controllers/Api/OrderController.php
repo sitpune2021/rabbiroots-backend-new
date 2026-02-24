@@ -14,7 +14,10 @@ class OrderController extends Controller
     // Assign order to delivery agent
     public function assign($id, OrderAssignmentService $service)
     {
-        $result = $service->assignOrder($id);
+        $agentId = auth()->id();
+
+        $result = $service->assignOrder($id, $agentId );
+
         return response()->json($result);
     }
 

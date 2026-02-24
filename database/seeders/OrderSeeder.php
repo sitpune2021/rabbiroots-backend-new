@@ -30,10 +30,7 @@ class OrderSeeder extends Seeder
 
             'status' => collect([
                 'placed',
-                'assigned',
-                'accepted',
-                'picked',
-                'delivered'
+               
             ])->random(),
 
             'created_at' => Carbon::now(),
