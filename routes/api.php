@@ -8,6 +8,9 @@ use App\Services\OrderAssignmentService;
 // Route::middleware(['auth:api', 'throttle:api'])->group(function () {
 // });
 
+Route::apiResource('delivery_agent', DeliveryAgentController::class);
+Route::get('/landing', [LandingController::class, 'index']);
+Route::get('/listing', [LandingController::class, 'listing']);
 Route::post('register-driver', [DriverAuthController::class, 'store']);
 Route::post('/send-otp', [DriverAuthController::class, 'sendOtp']);
 Route::post('/verify-otp', [DriverAuthController::class, 'verifyOtp']);
@@ -35,6 +38,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/agent/update-battery', [DeliveryAgentController::class, 'updateBattery']);
     Route::post('/agent/order/complete', [OrderController::class, 'completeOrder']);
     Route::post('/agent/heartbeat', [OrderController::class, 'heartbeat']);
-});
 
-Route::get('/landing', [LandingController::class, 'index']);
+});
