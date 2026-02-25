@@ -196,7 +196,7 @@ class DeliveryAgentController extends Controller
 
         return true;
     }
-
+    
     // Battery level must be sent from mobile app to backend.
     public function updateBattery(Request $request)
     {
@@ -554,7 +554,7 @@ class DeliveryAgentController extends Controller
 
     // get profile details
     public function profile()
-    {
+    { 
         $user = auth()->user()->load('deliveryAgent.location');
 
         if (!$user->deliveryAgent) {

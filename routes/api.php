@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\{CategoryController, DashboardController, LandingController, DeliveryAgentController, OrderController};
+use App\Http\Controllers\Api\{CategoryController, DashboardController, LandingController, DeliveryAgentController, OrderController, RatingController};
 use App\Http\Controllers\Api\Auth\DriverAuthController;
 use App\Services\OrderAssignmentService;
 
@@ -39,4 +39,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/agent/update-battery', [DeliveryAgentController::class, 'updateBattery']);
     Route::post('/agent/order/complete', [OrderController::class, 'completeOrder']);
     Route::post('/agent/heartbeat', [OrderController::class, 'heartbeat']);
+
+
+    // Customer gives rating
+    Route::post('/review/give', [RatingController::class, 'giveReview']);
+
+    // Agent views their ratings
+    Route::get('/agent/reviews', [RatingController::class, 'agentReviews']);
 });
