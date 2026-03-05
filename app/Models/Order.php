@@ -20,7 +20,12 @@ class Order extends Model
         'delivery_lat',
         'delivery_lng',
         'distance_km',
-        'status'
+        'status',
+        'secondary_phone',
+        'primary_attempt_count',
+        'secondary_attempt_count',
+        'delivery_attempt_started_at',
+        'sms_sent'
     ];
 
     // ===============================

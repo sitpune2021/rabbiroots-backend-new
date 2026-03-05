@@ -52,11 +52,11 @@ class DeliveryAgentRequest extends FormRequest
 
             'vendor_id' => 'nullable|integer',
 
-            'driving_license_doc'       => 'nullable|file|mimes:pdf|max:2048',
-            'vehicle_registration_doc'  => 'nullable|file|mimes:pdf|max:2048',
-            'insurance_doc'             => 'nullable|file|mimes:pdf|max:2048',
-            'aadhar_doc'                => 'nullable|file|mimes:pdf|max:2048',
-            'pan_doc'                   => 'nullable|file|mimes:pdf|max:2048',
+            'driving_license_doc'       => 'nullable|file|mimes:pdf|max:5000',
+            'vehicle_registration_doc'  => 'nullable|file|mimes:pdf|max:5000',
+            'insurance_doc'             => 'nullable|file|mimes:pdf|max:5000',
+            'aadhar_doc'                => 'nullable|file|mimes:pdf|max:5000',
+            'pan_doc'                   => 'nullable|file|mimes:pdf|max:5000',
 
             // App/device info
             'device_id' => 'required|string|max:100',

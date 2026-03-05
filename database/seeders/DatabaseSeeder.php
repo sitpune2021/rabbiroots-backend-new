@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             StoreManagerRoleSeeder::class,
             // BrandSeeder::class,
             DeliveryAgentRoleSeeder::class,
+            CustomerRoleSeeder::class,
         ]);
     }
 }

@@ -31,9 +31,13 @@ class DeliveryAgent extends Model
         'insurance_doc',
         'aadhar_doc',
         'pan_doc',
-        'status'
+        'status',
+        'battery_level',
+        'battery_updated_at',
     ];
-
+    protected $casts = [
+        'battery_updated_at' => 'datetime',
+    ];
     public function user()
     {
         return $this->belongsTo(User::class);
