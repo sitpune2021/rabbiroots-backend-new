@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class CheckDeadAgents extends Command
@@ -26,51 +27,70 @@ class CheckDeadAgents extends Command
     /**
      * Execute the console command.
      */
+
     public function handle()
     {
-        $deadAgents = User::where('role', 3)
-            ->whereHas('deliveryAgent', function ($q) {
-                $q->where('is_online', 0);
-            })
-            ->whereHas('assignedOrders', function ($q) {
-                $q->where('status', 'out_for_delivery');
-            })
+        $orders = \App\Models\Order::where('status', 'out_for_delivery')
+            ->whereNotNull('agent_id')
             ->get();
 
-        foreach ($deadAgents as $agent) {
+        foreach ($orders as $order) {
 
-            $order = Order::where('agent_id', $agent->id)
-                ->where('status', 'out_for_delivery')
-                ->first();
+            $deadAgent = \App\Models\User::find($order->agent_id);
 
-            if (!$order) continue;
+            if (!$deadAgent || !$deadAgent->deliveryAgent) {
+                continue;
+            }
 
-            // Penalize agent
-            $order->update([
-                'penalty_applied' => 1,
-                'reassigned_from' => $agent->id
-            ]);
+            $deliveryData = $deadAgent->deliveryAgent;
+
+            // Agent is dead if offline
+            if ($deliveryData->is_online == 1) {
+                continue; // Agent still active
+            }
 
             // Find next available agent
-            $newAgent = User::where('role', 3)
-                ->where('id', '!=', $agent->id)
+            $newAgent = \App\Models\User::where('role', 3)
+                ->where('id', '!=', $deadAgent->id)
                 ->whereHas('deliveryAgent', function ($q) {
                     $q->where('is_online', 1)
                         ->where('is_available', 1);
                 })
                 ->first();
 
-            if ($newAgent) {
-                $order->update([
-                    'agent_id' => $newAgent->id,
-                    'status' => 'assigned'
-                ]);
-
-                Log::info('Order reassigned', [
-                    'order_id' => $order->id,
-                    'new_agent' => $newAgent->id
-                ]);
+            if (!$newAgent) {
+                Log::info('No available agent found');
+                continue;
             }
+
+            // Apply penalty
+            $order->update([
+                'reassigned_from' => $deadAgent->id,
+                'penalty_applied' => 1,
+                'reassign_count' => $order->reassign_count + 1,
+                'dead_detected_at' => now(),
+                'agent_id' => $newAgent->id,
+                'status' => 'assigned'
+            ]);
+
+            // Update old agent
+            $deadAgent->deliveryAgent->update([
+                'current_order_id' => null,
+                'is_available' => 0,
+                'dead_phone_incidents' => $deadAgent->deliveryAgent->dead_phone_incidents + 1
+            ]);
+
+            // Update new agent
+            $newAgent->deliveryAgent->update([
+                'current_order_id' => $order->id,
+                'is_available' => 0
+            ]);
+
+            Log::info('Order reassigned successfully', [
+                'order_id' => $order->id,
+                'from' => $deadAgent->id,
+                'to' => $newAgent->id
+            ]);
         }
     }
 }

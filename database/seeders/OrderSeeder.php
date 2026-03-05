@@ -19,12 +19,12 @@ class OrderSeeder extends Seeder
             'order_number' => 'ORD-' . strtoupper(Str::random(6)),
             'vendor_id' => rand(1, 5),
             'customer_id' => rand(1, 20),
-            'agent_id' => rand(1, 5),
+            'agent_id' => 14,
 
-            'store_lat' => 18.520430,
-            'store_lng' => 73.856743,
-            'delivery_lat' => 18.531000,
-            'delivery_lng' => 73.844000,
+            'store_lat' => 10.520430,
+            'store_lng' => 60.856743,
+            'delivery_lat' => 10.531000,
+            'delivery_lng' => 60.844000,
 
             'distance_km' => rand(1, 10),
 

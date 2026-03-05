@@ -15,64 +15,76 @@ use App\Models\Order;
 use App\Models\OrderStatusLog;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 
 class DeliveryAgentController extends Controller
 {
 
-
-    /**
-     * Display a listing of the resource.
-     */
-    public function index() {}
-
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    // goOnline & goOffline API
+    public function updateOnlineStatus(Request $request)
     {
-        //
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+        try {
 
-    public function store() {}
+            $agent = auth()->user();
 
+            Log::info('Update online status API called', [
+                'user_id' => $agent?->id,
+                'role' => $agent?->role,
+                'request_data' => $request->all()
+            ]);
 
-    // goOnline API
-    public function goOnline(Request $request)
-    {
-        $agent = auth()->user();
+            if (!$agent) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Unauthorized'
+                ], 401);
+            }
 
-        $agent->deliveryAgent()->update([
-            'is_online' => 1,
-            'is_available' => 1
-        ]);
+            // ✅ Allow only delivery agents (change role_id accordingly)
+            if ($agent->role != 3) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Only delivery agents can update status'
+                ], 403);
+            }
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Agent is now online'
-        ]);
-    }
+            $request->validate([
+                'status' => 'required|in:online,offline'
+            ]);
 
-    // goOffline API
-    public function goOffline()
-    {
-        $agent = auth()->user();
+            $isOnline = $request->status === 'online' ? 1 : 0;
 
-        $agent->deliveryAgent()->update([
-            'is_online' => 0,
-            'is_available' => 0
-        ]);
+            $agent->deliveryAgent()->update([
+                'is_online' => $isOnline,
+                'is_available' => $isOnline
+            ]);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Agent is now offline'
-        ]);
+            Log::info('Agent status updated successfully', [
+                'agent_id' => $agent->id,
+                'new_status' => $request->status
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => $request->status === 'online'
+                    ? 'Agent is now online'
+                    : 'Agent is now offline'
+            ]);
+        } catch (\Exception $e) {
+
+            Log::error('Failed to update agent status', [
+                'error_message' => $e->getMessage(),
+                'user_id' => auth()->id()
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong. Please try again.'
+            ], 500);
+        }
     }
 
     public function updateLocation(Request $request)
@@ -208,7 +220,8 @@ class DeliveryAgentController extends Controller
 
         $agent->battery_level = $request->battery_level;
         $agent->battery_updated_at = now();
-
+  
+        // dd($agent->battery_updated_at->diffInMinutes(now()));
         // If battery < 15%, block order acceptance
         if ($request->battery_level < 15) {
             $agent->can_accept_orders = false;
@@ -225,6 +238,7 @@ class DeliveryAgentController extends Controller
 
     public function acceptOrder(Request $request)
     {
+
         Log::info('Accept Order API Hit', [
             'request_data' => $request->all(),
             'agent_id' => auth()->id()
@@ -252,10 +266,10 @@ class DeliveryAgentController extends Controller
         }
 
         // 2️⃣ Check if battery update is older than 10 minutes (anti-cheat protection)
-        if ($agent->battery_updated_at->diffInMinutes(now()) > 10) {
+        if ($agent->battery_updated_at->addMinutes(10)->isPast()) {
             Log::warning('Battery status outdated', [
                 'agent_id' => $agent->id,
-                'battery_updated_at' => $agent->battery_updated_at
+                'battery_updated_at' => $agent->battery_level
             ]);
 
             return response()->json([
@@ -551,29 +565,295 @@ class DeliveryAgentController extends Controller
         }
     }
 
-
     // get profile details
     public function profile()
     {
-        $user = auth()->user()->load('deliveryAgent.location');
+        try {
 
-        if (!$user->deliveryAgent) {
+            Log::info('Profile API Hit', [
+                'user_id' => auth()->id()
+            ]);
+
+            $user = auth()->user()->load('deliveryAgent.location');
+
+            if (!$user->deliveryAgent) {
+
+                Log::warning('Agent profile not found', [
+                    'user_id' => $user->id
+                ]);
+
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Agent profile not found'
+                ], 404);
+            }
+
+            return response()->json([
+                'status' => true,
+                'data' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'vehicle' => $user->deliveryAgent,
+                    'location' => $user->deliveryAgent->location
+                ]
+            ]);
+        } catch (\Exception $e) {
+
+            Log::error('Profile API Failed', [
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'user_id' => auth()->id()
+            ]);
+
             return response()->json([
                 'status' => false,
-                'message' => 'Agent profile not found'
-            ], 404);
+                'message' => 'Something went wrong. Please try again.'
+            ], 500);
         }
-
-        return response()->json([
-            'status' => true,
-            'data' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'vehicle' => $user->deliveryAgent,
-                'location' => $user->deliveryAgent->location
-            ]
-        ]);
     }
+
+
+    // Start Delivery Attempt API - Start Delivery Attempt API
+    public function startAttempt($orderId)
+    {
+        try {
+            Log::info('Start delivery attempt called', [
+                'order_id' => $orderId,
+                'agent_id' => auth()->id()
+            ]);
+
+            $order = Order::findOrFail($orderId);
+
+            $order->delivery_attempt_started_at = now();
+            $order->save();
+
+            Log::info('Delivery attempt started successfully', [
+                'order_id' => $order->id,
+                'started_at' => $order->delivery_attempt_started_at
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Delivery attempt started'
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+
+            Log::warning('Order not found while starting attempt', [
+                'order_id' => $orderId,
+                'agent_id' => auth()->id()
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Order not found'
+            ], 404);
+        } catch (\Exception $e) {
+
+            Log::error('Start delivery attempt failed', [
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'order_id' => $orderId,
+                'agent_id' => auth()->id()
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong. Please try again.'
+            ], 500);
+        }
+    }
+
+    // Call Attempt API
+    public function callCustomer(Request $request, $orderId)
+    {
+        try {
+
+            Log::info('Call customer attempt triggered', [
+                'order_id' => $orderId,
+                'type' => $request->type,
+                'agent_id' => auth()->id()
+            ]);
+
+            // ✅ Validate type
+            $request->validate([
+                'type' => 'required|in:primary,secondary'
+            ]);
+
+            $order = Order::findOrFail($orderId);
+
+            // ❗ Ensure attempt started
+            if (!$order->delivery_attempt_started_at) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Delivery attempt not started yet'
+                ], 400);
+            }
+
+            // ❗ Check 10-minute limit
+            if (now()->diffInMinutes($order->delivery_attempt_started_at) >= 10) {
+                $order->status = 'delivery_attempted';
+                $order->save();
+
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Delivery attempt time expired'
+                ], 400);
+            }
+            $type = $request->type;
+
+            if ($type === 'primary') {
+
+                $order->primary_attempt_count += 1;
+
+                if ($order->primary_attempt_count >= 3 && !$order->sms_sent) {
+
+                    Log::warning('Primary attempts reached 3. Sending SMS fallback.', [
+                        'order_id' => $order->id
+                    ]);
+
+                    // $this->sendSmsFallback($order);  //when twilio or any gateway provided then can use it
+                    $order->sms_sent = true;
+
+                    Log::info('SMS fallback sent', [
+                        'order_id' => $order->id
+                    ]);
+                }
+            }
+
+            if ($type === 'secondary') {
+
+                // ❗ Block secondary until 3 primary attempts
+                if ($order->primary_attempt_count < 3) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Secondary number allowed only after 3 primary attempts'
+                    ], 400);
+                }
+
+                $order->secondary_attempt_count += 1;
+
+                Log::info('Secondary attempt incremented', [
+                    'order_id' => $order->id,
+                    'secondary_attempt_count' => $order->secondary_attempt_count
+                ]);
+            }
+
+            // ✅ Save once (better performance)
+            $order->save();
+
+            return response()->json([
+                'status' => true,
+                'primary_attempts' => $order->primary_attempt_count,
+                'secondary_attempts' => $order->secondary_attempt_count
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+
+            return response()->json([
+                'status' => false,
+                'message' => $e->errors()
+            ], 422);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+
+            Log::warning('Order not found while calling customer', [
+                'order_id' => $orderId,
+                'agent_id' => auth()->id()
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Order not found'
+            ], 404);
+        } catch (\Exception $e) {
+
+            Log::error('Call customer API failed', [
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'order_id' => $orderId,
+                'agent_id' => auth()->id()
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong. Please try again.'
+            ], 500);
+        }
+    }
+    public function customerAnswered($orderId)
+    {
+        try {
+
+            Log::info('Customer answered. Resetting attempts.', [
+                'order_id' => $orderId,
+                'agent_id' => auth()->id()
+            ]);
+
+            $order = Order::findOrFail($orderId);
+
+            // Reset values
+            $order->primary_attempt_count = 0;
+            $order->secondary_attempt_count = 0;
+            $order->delivery_attempt_started_at = null;
+
+            $order->save();
+
+            Log::info('Attempts reset successfully', [
+                'order_id' => $order->id
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Attempts reset'
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+
+            Log::warning('Order not found while resetting attempts', [
+                'order_id' => $orderId,
+                'agent_id' => auth()->id()
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Order not found'
+            ], 404);
+        } catch (\Exception $e) {
+
+            Log::error('CustomerAnswered API failed', [
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'order_id' => $orderId,
+                'agent_id' => auth()->id()
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong. Please try again.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function index() {}
+
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        //
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+
+    public function store() {}
 }

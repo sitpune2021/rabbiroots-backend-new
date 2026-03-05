@@ -53,7 +53,8 @@ class DriverAuthController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => 'OTP sent successfully.'
+                'message' => 'OTP sent successfully.',
+                'otp' => $otp
             ]);
         } catch (Exception $e) {
 
@@ -180,6 +181,70 @@ class DriverAuthController extends Controller
         }
     }
 
+    // resendOtp
+    public function resendOtp(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|digits:10'
+        ]);
+
+        try {
+
+            $agent = DeliveryAgent::with('user')
+                ->whereHas('user', function ($q) use ($request) {
+                    $q->where('phone', $request->phone);
+                })
+                ->first();
+
+            if (!$agent) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Driver not registered.'
+                ], 404);
+            }
+
+            $user = $agent->user;
+
+            // 🔒 Prevent resend within 60 seconds
+            if ($user->updated_at && $user->updated_at->diffInSeconds(now()) < 30) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Please wait 30 seconds before resending OTP.'
+                ], 429);
+            }
+
+
+            // Generate new OTP
+            $otp = rand(100000, 999999);
+
+            $user->otp = $otp;
+            $user->otp_expires_at = now()->addMinutes(5);
+            $user->save();
+
+            Log::info('OTP resent successfully', [
+                'driver_id' => $agent->id,
+                'otp' => $otp
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'OTP resent successfully.',
+                'otp' => app()->environment('local') ? $otp : null // only visible in local
+            ]);
+        } catch (\Exception $e) {
+
+            Log::error('Resend OTP failed', [
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong.'
+            ], 500);
+        }
+    }
+
+
     public function logout(Request $request)
     {
         try {
@@ -234,38 +299,59 @@ class DriverAuthController extends Controller
 
     public function forgotPassword(Request $request)
     {
-        Log::info('Forgot Password API Hit', $request->all());
+        try {
 
-        $request->validate([
-            'phone' => [
-                'required',
-                'regex:/^[6-9]\d{9}$/',
-                'exists:users,phone'
-            ]
-        ]);
+            Log::info('Forgot Password API Hit', $request->all());
 
-        $user = User::where('phone', $request->phone)->first();
+            $request->validate([
+                'phone' => [
+                    'required',
+                    'regex:/^[6-9]\d{9}$/',
+                    'exists:users,phone'
+                ]
+            ]);
 
-        $otp = rand(100000, 999999);
+            $user = User::where('phone', $request->phone)->first();
 
-        $user->update([
-            'otp' => $otp,
-            'otp_expires_at' => now()->addMinutes(5)
-        ]);
+            $otp = rand(100000, 999999);
 
-        Log::info('OTP Generated', [
-            'user_id' => $user->id,
-            'otp' => $otp
-        ]);
+            $user->otp = $otp;
+            $user->otp_expires_at = now()->addMinutes(5);
+            $user->save();
 
-        // 👉 Send SMS using Twilio
-        // Twilio::sendSMS($user->phone, "Your reset OTP is $otp");
+            Log::info('OTP Generated Successfully', [
+                'user_id' => $user->id,
+                'otp' => $otp
+            ]);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'OTP sent to your phone'
-        ]);
+            // 👉 Send SMS using Twilio
+            // Twilio::sendSMS($user->phone, "Your reset OTP is $otp");
+
+            return response()->json([
+                'status' => true,
+                'message' => 'OTP sent to your phone'
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+
+            return response()->json([
+                'status' => false,
+                'message' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+
+            Log::error('Forgot Password Failed', [
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong. Please try again.'
+            ], 500);
+        }
     }
+
     /**
      * Display a listing of the resource.
      */
