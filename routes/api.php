@@ -1,7 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\{CategoryController, DashboardController, LandingController, DeliveryAgentController, OrderController, ProductController, RatingController, ReviewController};
+use App\Http\Controllers\Api\{CategoryController, CustomerAddressController, DashboardController, LandingController, DeliveryAgentController, OrderController, ProductController, RatingController, ReviewController};
+use App\Http\Controllers\Api\Auth\CustomerAuthController;
 use App\Http\Controllers\Api\Auth\DriverAuthController;
 use App\Services\OrderAssignmentService;
 
@@ -41,8 +42,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // Picked Orders API
     Route::get('/orders/picked/{id?}', [OrderController::class, 'getPickedOrders']);
 
-
-
     Route::post('/agent/order/complete', [OrderController::class, 'completeOrder']);
     Route::post('/orders/{id}/assign', [OrderController::class, 'assign']);
     Route::post('/agent/order/complete', [OrderController::class, 'completeOrder']);
@@ -52,7 +51,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders/new/{id?}', [OrderController::class, 'getNewOrders']);
     // Get All cancelled Orders api
     Route::get('/orders/cancelled/{id?}', [OrderController::class, 'getCancelledOrders']);
-
 
     // Customer gives rating
     Route::post('/review/give', [ReviewController::class, 'giveReview']);
@@ -66,4 +64,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/agent/call-customer/{order}', [DeliveryAgentController::class, 'callCustomer']);
 
     Route::post('/agent/customer-answered/{order}', [DeliveryAgentController::class, 'customerAnswered']);
+});
+Route::prefix('customer')->group(function () {
+
+    Route::post('send-otp', [CustomerAuthController::class, 'sendOtp']);
+    Route::post('verify-otp', [CustomerAuthController::class, 'verifyOtp']);
+
+    Route::middleware('auth:sanctum')->group(function () {
+
+        Route::post('/add-address', [CustomerAddressController::class, 'addAddress']);
+        Route::get('/address-list', [CustomerAddressController::class, 'addressList']);
+        Route::post('/update-address', [CustomerAddressController::class, 'updateAddress']);
+        Route::delete('/delete-address/{id}', [CustomerAddressController::class, 'deleteAddress']);
+        
+    });
 });
