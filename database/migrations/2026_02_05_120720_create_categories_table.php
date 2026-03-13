@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -22,15 +23,23 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->string('level', 10);
             $table->string('icon')->nullable();
+            $table->string('icon_alt')->nullable();
+
             $table->string('image')->nullable();
+            $table->string('image_alt')->nullable();
+
             $table->integer('sort_order')->default(0);
             $table->string('meta_title')->nullable();
             $table->text('meta_description')->nullable();
             $table->string('meta_keywords')->nullable();
             $table->string('canonical_url')->nullable();
             $table->string('og_image')->nullable();
+            $table->string('og_image_alt')->nullable();
+
             $table->boolean('is_indexable')->default(true);
             $table->boolean('is_active')->default(true);
+            $table->tinyInteger('featured')->default(0);
+
             $table->timestamps();
 
             $table->index(['parent_id', 'is_active']);

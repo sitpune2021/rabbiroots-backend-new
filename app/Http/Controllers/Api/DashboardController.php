@@ -1,17 +1,42 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
+use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
-class ProductController extends Controller
+class DashboardController extends Controller
 {
+
+    // 
+    public function agentOrderCount()
+    {
+
+        $agentId = Auth::id();
+
+        $data = [
+            'new_orders'       => Order::where('agent_id', $agentId)->where('status', 'placed')->count(),
+            'picked_orders'    => Order::where('agent_id', $agentId)->where('status', 'picked')->count(),
+            'completed_orders' => Order::where('agent_id', $agentId)->where('status', 'delivered')->count(),
+            'cancelled_orders' => Order::where('agent_id', $agentId)->where('status', 'cancelled')->count(),
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => $data
+        ]);
+    }
+
     /**
+     * 
+     * 
      * Display a listing of the resource.
      */
     public function index()
     {
-         return view('pages.product.index');
+        //
     }
 
     /**
@@ -19,7 +44,7 @@ class ProductController extends Controller
      */
     public function create()
     {
-         return view('pages.product.create');
+        //
     }
 
     /**

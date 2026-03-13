@@ -6,11 +6,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Permission\Traits\HasRoles;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -18,9 +22,24 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
+        'role',
         'name',
         'email',
+        'phone',
         'password',
+        'otp',
+        'otp_expires_at',
+        'store_id',
+        'vendor_id',
+        'is_active',
+        'last_login_at',
+        'last_login_ip',
+        'email_verified_at',
+    ];
+
+
+    protected $casts = [
+        'battery_updated_at' => 'datetime',
     ];
 
     /**
@@ -42,7 +61,40 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'last_login_at'     => 'datetime',
+            'is_active'         => 'boolean',
             'password' => 'hashed',
+
         ];
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeForStore($query, $storeId)
+    {
+        return $query->where('store_id', $storeId);
+    }
+
+    public function deliveryAgent()
+    {
+        return $this->hasOne(DeliveryAgent::class, 'user_id');
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'agent_id');
+    }
+
+    public function locations()
+    {
+        return $this->hasMany(AgentLocation::class, 'agent_id');
+    }
+
+    public function assignedOrders()
+    {
+        return $this->hasMany(Order::class, 'agent_id');
     }
 }

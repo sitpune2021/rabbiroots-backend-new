@@ -4,14 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class DriverController extends Controller
+class CustomerController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('pages.driver.index');
+        return view('pages.customers.index');
     }
 
     /**
@@ -19,7 +19,7 @@ class DriverController extends Controller
      */
     public function create()
     {
-        //
+        return view('pages.customers.create');
     }
 
     /**
@@ -27,7 +27,7 @@ class DriverController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        return redirect()->route('customer.index')->with('success', 'Customer created successfully.');
     }
 
     /**
@@ -35,7 +35,7 @@ class DriverController extends Controller
      */
     public function show(string $id)
     {
-        return view('pages.driver.show');
+        return view('pages.customers.show');
     }
 
     /**
@@ -43,22 +43,22 @@ class DriverController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        return view('pages.customers.edit');
     }
 
     /**
-     * Update a resource in storage.
+     * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
     {
-        //
+        return redirect()->route('customer.show', $id)->with('success', 'Customer updated successfully.');
     }
 
     /**
-     * Remove a resource from storage.
+     * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
-        //
+        return redirect()->route('customer.index')->with('success', 'Customer deleted successfully.');
     }
 }
