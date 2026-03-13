@@ -1,9 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\{CategoryController, CustomerAddressController, DashboardController, LandingController, DeliveryAgentController, OrderController, ProductController, RatingController, ReviewController};
+use App\Http\Controllers\Api\{CategoryController, CustomerAddressController, DashboardController, LandingController, DeliveryAgentController, GofrugalController, OrderController, ProductController, RatingController, ReviewController, WishlistController};
 use App\Http\Controllers\Api\Auth\CustomerAuthController;
 use App\Http\Controllers\Api\Auth\DriverAuthController;
+use App\Http\Controllers\Api\Customer\CartController;
 use App\Services\OrderAssignmentService;
 
 // Route::middleware(['auth:api', 'throttle:api'])->group(function () {
@@ -65,6 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/agent/customer-answered/{order}', [DeliveryAgentController::class, 'customerAnswered']);
 });
+
 Route::prefix('customer')->group(function () {
 
     Route::post('send-otp', [CustomerAuthController::class, 'sendOtp']);
@@ -76,6 +78,19 @@ Route::prefix('customer')->group(function () {
         Route::get('/address-list', [CustomerAddressController::class, 'addressList']);
         Route::post('/update-address', [CustomerAddressController::class, 'updateAddress']);
         Route::delete('/delete-address/{id}', [CustomerAddressController::class, 'deleteAddress']);
-        
+
+        // Add to cart
+        Route::post('/add-to-cart', [CartController::class, 'addToCart']);
     });
 });
+
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::post('/wishlist/add', [WishlistController::class, 'add']);
+
+    Route::get('/wishlist', [WishlistController::class, 'list']);
+
+    Route::delete('/wishlist/remove/{product_id}', [WishlistController::class, 'remove']);
+});
+
+Route::get('/gofrugal/items', [GofrugalController::class, 'getItems']);
