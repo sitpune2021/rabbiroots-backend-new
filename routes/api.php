@@ -81,16 +81,17 @@ Route::prefix('customer')->group(function () {
 
         // Add to cart
         Route::post('/add-to-cart', [CartController::class, 'addToCart']);
+        Route::post('/cart/update-quantity', [CartController::class, 'updateQuantity']);
     });
 });
 
-Route::middleware('auth:sanctum')->group(function () {
+// Route::middleware('auth:sanctum')->group(function () {
 
-    Route::post('/wishlist/add', [WishlistController::class, 'add']);
+//     Route::post('/wishlist/add', [WishlistController::class, 'add']);
 
-    Route::get('/wishlist', [WishlistController::class, 'list']);
+//     Route::get('/wishlist', [WishlistController::class, 'list']);
 
-    Route::delete('/wishlist/remove/{product_id}', [WishlistController::class, 'remove']);
-});
+//     Route::delete('/wishlist/remove/{product_id}', [WishlistController::class, 'remove']);
+// });
 
 Route::get('/gofrugal/items', [GofrugalController::class, 'getItems']);
