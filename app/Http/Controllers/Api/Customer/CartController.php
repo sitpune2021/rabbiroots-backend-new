@@ -187,6 +187,114 @@ class CartController extends Controller
         }
     }
 
+    // update cart quantity api
+    public function viewCart(Request $request)
+    {
+        try {
+
+            $customer_id = Auth::id();
+
+            Log::info('View cart request received', [
+                'customer_id' => $customer_id
+            ]);
+
+            // Get cart with product details
+            $cartItems = Cart::with('product:id,name,image,price')
+                ->where('customer_id', $customer_id)
+                ->get();
+
+            Log::info('Cart items fetched from DB', [
+                'customer_id' => $customer_id,
+                'cart_count' => $cartItems->count()
+            ]);
+
+            if ($cartItems->isEmpty()) {
+
+                Log::warning('Cart is empty', [
+                    'customer_id' => $customer_id
+                ]);
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Cart is empty',
+                    'data' => []
+                ]);
+            }
+
+            $totalAmount = 0;
+            $totalItems = 0;
+            $items = [];
+
+            foreach ($cartItems as $cart) {
+
+                // Safety check
+                if (!$cart->product) {
+
+                    Log::error('Product not found for cart item', [
+                        'cart_id' => $cart->id,
+                        'product_id' => $cart->product_id
+                    ]);
+
+                    continue;
+                }
+
+                $subtotal = $cart->quantity * $cart->price;
+
+                Log::info('Processing cart item', [
+                    'cart_id' => $cart->id,
+                    'product_id' => $cart->product_id,
+                    'quantity' => $cart->quantity,
+                    'price' => $cart->price,
+                    'subtotal' => $subtotal
+                ]);
+
+                $totalAmount += $subtotal;
+                $totalItems += $cart->quantity;
+
+                $items[] = [
+                    'cart_id'   => $cart->id,
+                    'product_id' => $cart->product_id,
+                    'name'      => $cart->product->name,
+                    'image'     => $cart->product->image,
+                    'price'     => $cart->price,
+                    'quantity'  => $cart->quantity,
+                    'subtotal'  => $subtotal
+                ];
+            }
+
+            Log::info('Cart calculation completed', [
+                'customer_id' => $customer_id,
+                'total_items' => $totalItems,
+                'total_amount' => $totalAmount
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Cart fetched successfully',
+                'data' => [
+                    'items' => $items,
+                    'summary' => [
+                        'total_items' => $totalItems,
+                        'total_amount' => $totalAmount,
+                    ]
+                ]
+            ]);
+        } catch (\Exception $e) {
+
+            Log::critical('View cart failed', [
+                'customer_id' => Auth::id(),
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong'
+            ], 500);
+        }
+    }
+
 
     /**
      * Display a listing of the resource.

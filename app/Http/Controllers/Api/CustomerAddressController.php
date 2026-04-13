@@ -20,37 +20,73 @@ class CustomerAddressController extends Controller
             ]);
 
             $validator = Validator::make($request->all(), [
+                'address_type' => 'required|in:home,work,hotel,other',
                 'house_no' => 'required|string|max:255',
+                'floor' => 'nullable|string|max:100',
                 'area' => 'required|string|max:255',
+                'landmark' => 'nullable|string|max:255',
                 'city' => 'required|string|max:255',
                 'state' => 'required|string|max:255',
                 'pincode' => 'required|digits:6',
-                'latitude' => 'nullable',
-                'longitude' => 'nullable'
+                'name' => 'required|string|max:255',
+                'phone' => 'nullable|digits:10',
+                'is_default' => 'nullable|boolean'
             ]);
 
             if ($validator->fails()) {
-
                 return response()->json([
                     'status' => false,
                     'message' => $validator->errors()->first()
                 ], 422);
             }
 
+            // ✅ Normalize input (avoid duplicate variations)
+            $houseNo = strtolower(trim($request->house_no));
+            $area = strtolower(trim($request->area));
+            $city = strtolower(trim($request->city));
+            $pincode = $request->pincode;
+
+            // ✅ Duplicate Check (Soft)
+            $exists = Address::where('user_id', auth()->id())
+                ->whereRaw('LOWER(TRIM(house_no)) = ?', [$houseNo])
+                ->whereRaw('LOWER(TRIM(area)) = ?', [$area])
+                ->whereRaw('LOWER(TRIM(city)) = ?', [$city])
+                ->where('pincode', $pincode)
+                ->exists();
+
+            if ($exists) {
+
+                Log::warning('Duplicate address attempt blocked', [
+                    'user_id' => auth()->id(),
+                    'house_no' => $houseNo,
+                    'area' => $area
+                ]);
+
+                return response()->json([
+                    'status' => false,
+                    'message' => 'This address already exists'
+                ], 409);
+            }
+
+            // ✅ Only one default address per user
+            if ($request->is_default == 1) {
+                Address::where('user_id', auth()->id())
+                    ->update(['is_default' => 0]);
+            }
+
             $address = Address::create([
                 'user_id' => auth()->id(),
+                'address_type' => $request->address_type,
                 'house_no' => $request->house_no,
+                'floor' => $request->floor,
                 'area' => $request->area,
+                'landmark' => $request->landmark,
                 'city' => $request->city,
                 'state' => $request->state,
                 'pincode' => $request->pincode,
-                'latitude' => $request->latitude,
-                'longitude' => $request->longitude,
+                'name' => $request->name,
+                'phone' => $request->phone,
                 'is_default' => $request->is_default ?? 0
-            ]);
-
-            Log::info('Customer address added', [
-                'address_id' => $address->id
             ]);
 
             return response()->json([
@@ -70,6 +106,7 @@ class CustomerAddressController extends Controller
             ], 500);
         }
     }
+
 
     //  // add address api list api
     public function addressList()
@@ -103,26 +140,56 @@ class CustomerAddressController extends Controller
         }
     }
 
+    /**
+     * GET USER ADDRESSES
+     */
+    public function getAddresses()
+    {
+        $addresses = Address::where('user_id', auth()->id())
+            ->orderByDesc('is_default')
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $addresses
+        ]);
+    }
+
     // Update Addrdess
-    public function updateAddress(Request $request)
+    public function updateAddress(Request $request, $id)
     {
         try {
 
-            Log::info('Update address request', [
+            Log::info('Update address request received', [
                 'user_id' => auth()->id(),
-                'address_id' => $request->address_id
+                'address_id' => $id,
+                'request_data' => $request->all()
             ]);
 
+            $address = Address::where('user_id', auth()->id())->findOrFail($id);
+
             $validator = Validator::make($request->all(), [
-                'address_id' => 'required|exists:addresses,id',
+                'address_type' => 'required|in:home,work,hotel,other',
                 'house_no' => 'required|string|max:255',
+                'floor' => 'nullable|string|max:100',
                 'area' => 'required|string|max:255',
+                'landmark' => 'nullable|string|max:255',
                 'city' => 'required|string|max:255',
                 'state' => 'required|string|max:255',
                 'pincode' => 'required|digits:6',
+                'name' => 'required|string|max:255',
+                'phone' => 'nullable|digits:10',
+                'is_default' => 'nullable|boolean'
             ]);
 
             if ($validator->fails()) {
+
+                Log::warning('Update address validation failed', [
+                    'user_id' => auth()->id(),
+                    'address_id' => $id,
+                    'errors' => $validator->errors()->toArray()
+                ]);
 
                 return response()->json([
                     'status' => false,
@@ -130,28 +197,21 @@ class CustomerAddressController extends Controller
                 ], 422);
             }
 
-            $address = Address::where('id', $request->address_id)
-                ->where('user_id', auth()->id())
-                ->first();
+            // ✅ Handle default address
+            if ($request->is_default == 1) {
 
-            if (!$address) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Address not found'
+                Log::info('Updating default address for user', [
+                    'user_id' => auth()->id()
                 ]);
+
+                Address::where('user_id', auth()->id())
+                    ->update(['is_default' => 0]);
             }
 
-            $address->update([
-                'house_no' => $request->house_no,
-                'area' => $request->area,
-                'city' => $request->city,
-                'state' => $request->state,
-                'pincode' => $request->pincode,
-                'latitude' => $request->latitude,
-                'longitude' => $request->longitude
-            ]);
+            $address->update($request->all());
 
             Log::info('Address updated successfully', [
+                'user_id' => auth()->id(),
                 'address_id' => $address->id
             ]);
 
@@ -163,7 +223,11 @@ class CustomerAddressController extends Controller
         } catch (\Exception $e) {
 
             Log::error('Update address failed', [
-                'error' => $e->getMessage()
+                'user_id' => auth()->id(),
+                'address_id' => $id,
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
             ]);
 
             return response()->json([
@@ -218,6 +282,20 @@ class CustomerAddressController extends Controller
         }
     }
 
+
+    public function setDefault($id)
+    {
+        Address::where('user_id', auth()->id())
+            ->update(['is_default' => 0]);
+
+        $address = Address::where('user_id', auth()->id())->findOrFail($id);
+        $address->update(['is_default' => 1]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Default address set successfully'
+        ]);
+    }
 
     /**
      * Display a listing of the resource.

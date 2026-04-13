@@ -225,7 +225,8 @@
 @push('scripts')
     <script>
         // Auto slug generation
-        document.getElementById('name').addEventListener('input', function() {
+    document.getElementById('name').addEventListener('input', function() {
+   
             document.getElementById('slug').value = this.value
                 .toLowerCase()
                 .replace(/[^a-z0-9]+/g, '-')
@@ -330,6 +331,7 @@
             fetch(`/api/categories/subcategories/${this.value}`)
                 .then(response => response.json())
                 .then(data => {
+                    console.log(data)
                     subSelect.innerHTML = '<option value="">— Select Sub Category —</option>';
 
                     data.forEach(sub => {

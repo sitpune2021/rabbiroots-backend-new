@@ -17,7 +17,7 @@ class CategoryController extends Controller
         $categories = Category::with('parent.parent')
             ->latest()
             ->paginate(20);
-            // dd($categories);
+        // dd($categories);
 
         return view('pages.category.index', compact('categories'));
     }
@@ -52,12 +52,12 @@ class CategoryController extends Controller
 
     public function edit(Category $category)
     {
-        $parents = Category::whereNull('parent_id')
+        $mainCategories = Category::whereNull('parent_id')
             ->where('id', '!=', $category->id)
             ->active()
             ->get();
 
-        return view('pages.category.create', compact('category', 'parents'));
+        return view('pages.category.create', compact('category', 'mainCategories'));
     }
 
     /* ---------------- UPDATE ---------------- */
@@ -125,7 +125,7 @@ class CategoryController extends Controller
 
             'icon'  => ['nullable', 'max:1024'],
             'icon_alt' => ['nullable', 'string', 'max:255'],
-            
+
             'image' => ['nullable', 'max:2048'],
             'image_alt' => ['nullable', 'string', 'max:255'],
 
@@ -178,4 +178,17 @@ class CategoryController extends Controller
         return response()->json(['success' => true]);
     }
 
+    //Fetch subcategories
+    public function getSubCategories($id)
+    {
+        $subCategories = Category::where('parent_id', $id)
+            ->where('is_active', 1)
+            ->select('id', 'name')
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $subCategories
+        ]);
+    }
 }

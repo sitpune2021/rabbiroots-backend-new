@@ -20,6 +20,10 @@ Route::post('/logout', [DriverAuthController::class, 'logout'])->middleware('aut
 Route::post('/forgot-password', [DriverAuthController::class, 'forgotPassword']);
 Route::post('/resend-otp', [DriverAuthController::class, 'resendOtp']);
 Route::get('/product/{id}', [ProductController::class, 'show']);
+Route::get('/categories/subcategories/{id}', [CategoryController::class, 'getSubCategories']);
+Route::get('/category-products/{id}', [ProductController::class, 'getByCategory']);
+Route::get('/brands/{id}/products', [ProductController::class, 'getByBrand']);
+Route::get('/categories/{id}/brands', [ProductController::class, 'getBrandsByCategory']);
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -75,14 +79,18 @@ Route::prefix('customer')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('/add-address', [CustomerAddressController::class, 'addAddress']);
-        Route::get('/address-list', [CustomerAddressController::class, 'addressList']);
-        Route::post('/update-address', [CustomerAddressController::class, 'updateAddress']);
+        Route::get('/address-list', [CustomerAddressController::class, 'getAddresses']);
+        Route::post('/update-address/{id}', [CustomerAddressController::class, 'updateAddress']);
         Route::delete('/delete-address/{id}', [CustomerAddressController::class, 'deleteAddress']);
+        Route::post('/address/set-default/{id}', [CustomerAddressController::class, 'setDefault']);
 
         // Add to cart
         Route::post('/add-to-cart', [CartController::class, 'addToCart']);
         Route::post('/cart/update-quantity', [CartController::class, 'updateQuantity']);
+        Route::get('view-cart', [CartController::class, 'viewCart']);
     });
+
+    Route::get('/products/{id}/similar', [ProductController::class, 'getSimilarProducts']);
 });
 
 // Route::middleware('auth:sanctum')->group(function () {

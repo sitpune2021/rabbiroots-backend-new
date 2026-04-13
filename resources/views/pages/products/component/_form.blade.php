@@ -1,5 +1,6 @@
 @php
-    $isEdit = isset($product);
+$isEdit = isset($product);
+
 @endphp
 
 <form id="productForm" method="POST"
@@ -7,7 +8,7 @@
     enctype="multipart/form-data">
     @csrf
     @if ($isEdit)
-        @method('PUT')
+    @method('PUT')
     @endif
 
     {{-- ================= BASIC INFO ================= --}}
@@ -53,15 +54,15 @@
                     <select name="category_id" class="form-select" required>
                         <option value="">— Select Category —</option>
                         @foreach ($categories as $cat)
-                            <option value="{{ $cat->id }}" @selected(old('category_id', $product->category_id ?? '') == $cat->id)>
-                                @php
-                                    $main = $cat->parent?->parent;
-                                    $sub = $cat->parent;
-                                @endphp
-                                {{ $cat->name }} >
-                                {{ $sub?->name }}
-                                {{ $main?->name ? ' > ' . $main?->name : '' }}
-                        @endforeach
+                        <option value="{{ $cat->id }}" @selected(old('category_id', $product->category_id ?? '') == $cat->id)>
+                            @php
+                            $main = $cat->parent?->parent;
+                            $sub = $cat->parent;
+                            @endphp
+                            {{ $cat->name }} >
+                            {{ $sub?->name }}
+                            {{ $main?->name ? ' > ' . $main?->name : '' }}
+                            @endforeach
                     </select>
                 </div>
 
@@ -73,9 +74,9 @@
                     <select name="brand_id" class="form-select" required>
                         <option value="">— Select Brand —</option>
                         @foreach ($brands as $brand)
-                            <option value="{{ $brand->id }}" @selected(old('brand_id', $product->brand_id ?? '') == $brand->id)>
-                                {{ $brand->name }}
-                            </option>
+                        <option value="{{ $brand->id }}" @selected(old('brand_id', $product->brand_id ?? '') == $brand->id)>
+                            {{ $brand->name }}
+                        </option>
                         @endforeach
                     </select>
                 </div>
@@ -84,10 +85,10 @@
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Product Type</label>
                     <select name="product_type" class="form-select">
-                        @foreach (['grocery', 'fresh', 'frozen', 'pharma'] as $type)
-                            <option value="{{ $type }}" @selected(old('product_type', $product->product_type ?? '') === $type)>
-                                {{ ucfirst($type) }}
-                            </option>
+                        @foreach (['grocery', 'fresh', 'frozen', 'pharma','fashion','cosmetic'] as $type)
+                        <option value="{{ $type }}" @selected(old('product_type', $product->product_type ?? '') === $type)>
+                            {{ ucfirst($type) }}
+                        </option>
                         @endforeach
                     </select>
                     <div class="form-text">
@@ -126,30 +127,30 @@
             <div id="image-preview" class="d-flex flex-wrap gap-3 mt-3">
 
                 @if ($isEdit && $product->images)
-                    @foreach ($product->images as $img)
-                        <div class="position-relative existing-image">
+                @foreach ($product->images as $img)
+                <div class="position-relative existing-image">
 
-                            <img src="{{ asset('storage/' . $img->image) }}" class="rounded border"
-                                style="width:110px;height:110px;object-fit:cover;">
+                    <img src="{{ asset('storage/' . $img->image) }}" class="rounded border"
+                        style="width:110px;height:110px;object-fit:cover;">
 
-                            {{-- Primary Badge --}}
-                            @if ($img->is_primary)
-                                <span class="badge bg-primary position-absolute top-0 start-0">
-                                    Primary
-                                </span>
-                            @endif
+                    {{-- Primary Badge --}}
+                    @if ($img->is_primary)
+                    <span class="badge bg-primary position-absolute top-0 start-0">
+                        Primary
+                    </span>
+                    @endif
 
-                            {{-- Remove Button --}}
-                            <button type="button"
-                                class="btn btn-sm btn-danger position-absolute top-0 end-0 remove-product-image"
-                                data-id="{{ $img->id }}">
-                                ✕
-                            </button>
+                    {{-- Remove Button --}}
+                    <button type="button"
+                        class="btn btn-sm btn-danger position-absolute top-0 end-0 remove-product-image"
+                        data-id="{{ $img->id }}">
+                        ✕
+                    </button>
 
-                            {{-- Hidden field to keep image --}}
-                            <input type="hidden" name="existing_product_images[]" value="{{ $img->id }}">
-                        </div>
-                    @endforeach
+                    {{-- Hidden field to keep image --}}
+                    <input type="hidden" name="existing_product_images[]" value="{{ $img->id }}">
+                </div>
+                @endforeach
                 @endif
 
             </div>
@@ -169,50 +170,50 @@
             <div class="row g-3">
 
                 @php
-                    $flags = [
-                        'is_perishable' => [
-                            'label' => 'Perishable',
-                            'icon' => '⏳',
-                            'hint' => 'Expires quickly, needs expiry tracking',
-                        ],
-                        'requires_cold_storage' => [
-                            'label' => 'Cold Storage',
-                            'icon' => '❄️',
-                            'hint' => 'Must be stored below temperature threshold',
-                        ],
-                        'is_fragile' => [
-                            'label' => 'Fragile',
-                            'icon' => '📦',
-                            'hint' => 'Handle carefully during picking & delivery',
-                        ],
-                        'is_veg' => [
-                            'label' => 'Vegetarian',
-                            'icon' => '🥬',
-                            'hint' => 'Veg-friendly product',
-                        ],
-                        'contains_allergens' => [
-                            'label' => 'Contains Allergens',
-                            'icon' => '⚠️',
-                            'hint' => 'Show allergen warning to customers',
-                        ],
-                    ];
+                $flags = [
+                'is_perishable' => [
+                'label' => 'Perishable',
+                'icon' => '⏳',
+                'hint' => 'Expires quickly, needs expiry tracking',
+                ],
+                'requires_cold_storage' => [
+                'label' => 'Cold Storage',
+                'icon' => '❄️',
+                'hint' => 'Must be stored below temperature threshold',
+                ],
+                'is_fragile' => [
+                'label' => 'Fragile',
+                'icon' => '📦',
+                'hint' => 'Handle carefully during picking & delivery',
+                ],
+                'is_veg' => [
+                'label' => 'Vegetarian',
+                'icon' => '🥬',
+                'hint' => 'Veg-friendly product',
+                ],
+                'contains_allergens' => [
+                'label' => 'Contains Allergens',
+                'icon' => '⚠️',
+                'hint' => 'Show allergen warning to customers',
+                ],
+                ];
                 @endphp
 
                 @foreach ($flags as $key => $data)
-                    <div class="col-md-4 col-lg-3">
-                        <label class="flag-card w-100">
-                            <input type="checkbox" name="{{ $key }}" value="1" class="d-none flag-input"
-                                @checked(old($key, $product->$key ?? false))>
+                <div class="col-md-4 col-lg-3">
+                    <label class="flag-card w-100">
+                        <input type="checkbox" name="{{ $key }}" value="1" class="d-none flag-input"
+                            @checked(old($key, $product->$key ?? false))>
 
-                            <div class="border rounded p-3 h-100 text-center flag-box">
-                                <div class="fs-2">{{ $data['icon'] }}</div>
-                                <div class="fw-semibold mt-2">{{ $data['label'] }}</div>
-                                <small class="text-muted d-block mt-1">
-                                    {{ $data['hint'] }}
-                                </small>
-                            </div>
-                        </label>
-                    </div>
+                        <div class="border rounded p-3 h-100 text-center flag-box">
+                            <div class="fs-2">{{ $data['icon'] }}</div>
+                            <div class="fw-semibold mt-2">{{ $data['label'] }}</div>
+                            <small class="text-muted d-block mt-1">
+                                {{ $data['hint'] }}
+                            </small>
+                        </div>
+                    </label>
+                </div>
                 @endforeach
 
             </div>
@@ -618,27 +619,27 @@
         <div class="card-body">
 
             @php
-                $statusFlags = [
-                    'is_active' => 'Active (Visible to customers)',
-                    'is_featured' => 'Featured Product',
-                    'is_new' => 'Mark as New Arrival',
-                    'is_bestseller' => 'Bestseller Tag',
-                    'show_out_of_stock' => 'Show when out of stock',
-                ];
+            $statusFlags = [
+            'is_active' => 'Active (Visible to customers)',
+            'is_featured' => 'Featured Product',
+            'is_new' => 'Mark as New Arrival',
+            'is_bestseller' => 'Bestseller Tag',
+            'show_out_of_stock' => 'Show when out of stock',
+            ];
             @endphp
 
             @foreach ($statusFlags as $key => $label)
-                {{-- Hidden input ensures FALSE is sent --}}
-                <input type="hidden" name="{{ $key }}" value="0">
+            {{-- Hidden input ensures FALSE is sent --}}
+            <input type="hidden" name="{{ $key }}" value="0">
 
-                <div class="form-check form-switch mb-2">
-                    <input class="form-check-input" type="checkbox" name="{{ $key }}" value="1"
-                        id="{{ $key }}" @checked(old($key, $product->$key ?? false))>
+            <div class="form-check form-switch mb-2">
+                <input class="form-check-input" type="checkbox" name="{{ $key }}" value="1"
+                    id="{{ $key }}" @checked(old($key, $product->$key ?? false))>
 
-                    <label class="form-check-label" for="{{ $key }}">
-                        {{ $label }}
-                    </label>
-                </div>
+                <label class="form-check-label" for="{{ $key }}">
+                    {{ $label }}
+                </label>
+            </div>
             @endforeach
 
         </div>
@@ -655,31 +656,32 @@
 </form>
 
 @push('scripts')
-    <script>
-        window.productFormConfig = {
-            isEdit: @json($isEdit),
-            variants: @json($product->variants ?? []),
-            attributes: @json($product->attributes ?? [])
-        };
-    </script>
+<script>
+    window.productFormConfig = {
+        isEdit: @json($isEdit),
+        variants: @json($product->variants ?? []),
+        attributes: @json($product->attributes ?? [])
+    };
+</script>
+
 @endpush
 
 
 @push('styles')
-    <style>
-        .flag-card {
-            cursor: pointer;
-        }
+<style>
+    .flag-card {
+        cursor: pointer;
+    }
 
-        .flag-box {
-            transition: all 0.2s ease;
-        }
+    .flag-box {
+        transition: all 0.2s ease;
+    }
 
-        .flag-input:checked+.flag-box,
-        .flag-card:hover .flag-box {
-            background-color: #f0f9ff;
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 1px rgba(13, 110, 253, .25);
-        }
-    </style>
+    .flag-input:checked+.flag-box,
+    .flag-card:hover .flag-box {
+        background-color: #f0f9ff;
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 1px rgba(13, 110, 253, .25);
+    }
+</style>
 @endpush

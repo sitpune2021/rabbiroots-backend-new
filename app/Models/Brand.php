@@ -24,4 +24,9 @@ class Brand extends Model
         'is_active' => 'boolean',
         'is_featured' => 'boolean',
     ];
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }

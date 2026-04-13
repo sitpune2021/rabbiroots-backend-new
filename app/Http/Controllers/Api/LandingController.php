@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\{Category, Product, Store};
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class LandingController extends Controller
@@ -16,11 +17,11 @@ class LandingController extends Controller
     public function index()
     {
         return Cache::remember('landing_page_v1', 300, function () {
-        // $storeId= request()->header('X-Store-Id') ?? 1; // Default to 1 if header not present
+            // $storeId= request()->header('X-Store-Id') ?? 1; // Default to 1 if header not present
 
 
             // 1️⃣ Top 20 categories
-            $topCategories = Category::active()->level('main')->select('id','name','slug','icon','icon_alt','image', 'image_alt')->orderBy('sort_order')
+            $topCategories = Category::active()->level('main')->select('id', 'name', 'slug', 'icon', 'icon_alt', 'image', 'image_alt')->orderBy('sort_order')
                 ->take(20)
                 ->get();
 
@@ -50,7 +51,7 @@ class LandingController extends Controller
 
             foreach ($featuredMainCategories as $main) {
 
-                    // 🔥 Collect ALL level2 + level3 ids
+                // 🔥 Collect ALL level2 + level3 ids
                 $level2Ids = $main->children->pluck('id');
 
                 $level3Ids = $main->children
@@ -64,79 +65,141 @@ class LandingController extends Controller
                     ->unique()
                     ->values();
 
-                $products = Product::whereIn('category_id', $allCategoryIds)
-                    ->where('is_active', true)
-                    // ->whereHas('variants.storeInventories', function ($q) use ($storeId) {
-                    //     $q->where('store_id', $storeId)
-                    //     ->where('available_qty', '>', 0);
+                // $products = Product::whereIn('category_id', $allCategoryIds)
+                //     ->where('is_active', true)
+
+                //     ->with([
+                //         'images' => function ($q) {
+                //             $q->where('is_primary', true)
+                //             ->select('id','product_id','image');
+                //         },
+                //         'variants' => function ($q) {
+                //             $q->where('is_default', true)
+
+                //             ->select('id','product_id','pack_size','unit','cost_price','tax_percent','selling_price','mrp');
+                //         }
+                //     ])
+                //     ->inRandomOrder()
+                //     ->take(12)
+                //     ->select('id','category_id','name','slug','short_description')
+                //     ->get()
+                //     ->map(function ($product) {
+
+                //         $variant = $product->variants->first();
+
+                //         if (!$variant) return null;
+
+                //         $inventory = $variant->storeInventories->first();
+                //         $override = $variant->priceOverrides->first();
+
+                //         return [
+                //             'id' => $product->id,
+                //             'name' => $product->name,
+                //             'slug' => $product->slug,
+                //             'short_description' => $product->short_description,
+                //             'image' => $product->images->first()
+                //                         ? asset(Storage::url($product->images->first()->image))
+                //                         : null,
+                //             'image_alt' => $product->images->first() ? $product->images->first()->image_alt ?? $product->name : null,
+
+                //             'price' => $override?->override_price ?? $variant->selling_price,
+                //             'mrp' => $variant->mrp,
+                //             'stock' => $inventory?->available_qty ?? 0,
+                //             'in_stock' => ($inventory?->available_qty ?? 0) > 0,
+                //             'variants' => $product->variants->map(function ($v) {
+                //                 return [
+                //                     'id' => $v->id,
+                //                     'pack_size' => $v->pack_size,
+                //                     'unit' => $v->unit,
+                //                     'cost_price' => $v->cost_price,
+                //                     'tax_percent' => $v->tax_percent,
+                //                     'selling_price' => $v->selling_price,
+                //                     'mrp' => $v->mrp,
+                //                     'discount_percent' => $v->mrp > 0
+                //                         ? round((($v->mrp - $v->selling_price) / $v->mrp) * 100)
+                //                         : 0,
+                //                 ];
+                //             })
+                //         ];
+                //     })->filter()->values();
+
+
+                // ✅ Main Query
+                $products = DB::table('products as p')
+                    ->leftJoin(DB::raw("
+    (SELECT product_id, MIN(image) as image
+     FROM product_images
+     WHERE is_primary = 1
+     GROUP BY product_id
+    ) as pi
+"), 'pi.product_id', '=', 'p.id')
+
+                    // ->leftJoin('product_variants as v', function ($join) {
+                    //     $join->on('v.product_id', '=', 'p.id')
+                    //         ->where('v.is_default', 1);
                     // })
-                    ->with([
-                        'images' => function ($q) {
-                            $q->where('is_primary', true)
-                            ->select('id','product_id','image');
-                        },
-                        'variants' => function ($q) {
-                            $q->where('is_default', true)
-                            // ->with([
-                            //     'storeInventories' => function ($q2) use ($storeId) {
-                            //         $q2->where('store_id', $storeId)
-                            //             ->select('id','variant_id','available_qty');
-                            //     },
-                            //     'priceOverrides' => function ($q3) use ($storeId) {
-                            //         $q3->where('store_id', $storeId)
-                            //             ->select('id','variant_id','override_price');
-                            //     }
-                            // ])
-                            ->select('id','product_id','pack_size','unit','cost_price','tax_percent','selling_price','mrp');
-                        }
-                    ])
+                    // ->leftJoin('store_inventories as si', 'si.product_variant_id', '=', 'v.id')
+                    // ->leftJoin('product_price_overrides as po', 'po.product_variant_id', '=', 'v.id')
+                    ->whereIn('p.category_id', $allCategoryIds)
+                    ->where('p.is_active', 1)
                     ->inRandomOrder()
-                    ->take(12)
-                    ->select('id','category_id','name','slug','short_description')
-                    ->get()
-                    ->map(function ($product) {
+                    ->limit(12)
+                    ->select(
+                        'p.id as product_id',
+                        'p.name',
+                        'p.slug',
+                        'p.short_description',
+                        'pi.image',
+                        // 'v.id as variant_id',
+                        // 'v.pack_size',
+                        // 'v.unit',
+                        // 'v.cost_price',
+                        // 'v.tax_percent',
+                        // 'v.selling_price',
+                        // 'v.mrp',
+                        // 'si.available_qty',
+                        // 'po.override_price'
+                    )
+                    ->get();
 
-                        $variant = $product->variants->first();
+                // ✅ Format Response
+                $formatted = $products->map(function ($item) {
 
-                        if (!$variant) return null;
+                    // $price = $item->override_price ?? $item->selling_price;
+                    $mrp = $item->mrp ?? 0;
 
-                        $inventory = $variant->storeInventories->first();
-                        $override = $variant->priceOverrides->first();
+                    return [
+                        'id' => $item->product_id,
+                        'name' => $item->name,
+                        'slug' => $item->slug,
+                        'short_description' => $item->short_description,
 
-                        return [
-                            'id' => $product->id,
-                            'name' => $product->name,
-                            'slug' => $product->slug,
-                            'short_description' => $product->short_description,
-                            'image' => $product->images->first()
-                                        ? asset(Storage::url($product->images->first()->image))
-                                        : null,
-                            'image_alt' => $product->images->first() ? $product->images->first()->image_alt ?? $product->name : null,
+                        'image' => $item->image
+                            ? asset(Storage::url($item->image))
+                            : null,
 
-                            'price' => $override?->override_price ?? $variant->selling_price,
-                            'mrp' => $variant->mrp,
-                            'stock' => $inventory?->available_qty ?? 0,
-                            'in_stock' => ($inventory?->available_qty ?? 0) > 0,
-                            'variants' => $product->variants->map(function ($v) {
-                                return [
-                                    'id' => $v->id,
-                                    'pack_size' => $v->pack_size,
-                                    'unit' => $v->unit,
-                                    'cost_price' => $v->cost_price,
-                                    'tax_percent' => $v->tax_percent,
-                                    'selling_price' => $v->selling_price,
-                                    'mrp' => $v->mrp,
-                                    'discount_percent' => $v->mrp > 0
-                                        ? round((($v->mrp - $v->selling_price) / $v->mrp) * 100)
-                                        : 0,
-                                ];
-                            })
-                        ];
-                    })->filter()->values();
+                        // 'price' => $price,
+                        'mrp' => $mrp,
+
+                        // 'discount_percent' => $mrp > 0
+                        //     ? round((($mrp - $price) / $mrp) * 100)
+                        //     : 0,
+
+                        'stock' => $item->available_qty ?? 0,
+                        'in_stock' => ($item->available_qty ?? 0) > 0,
+
+                        // 'variant' => [
+                        //     'id' => $item->variant_id,
+                        //     'pack_size' => $item->pack_size,
+                        //     'unit' => $item->unit,
+                        // ]
+                    ];
+                });
+
 
                 // ✅ Only push if products exist
                 if ($products->isNotEmpty()) {
-                        $sections[] = [
+                    $sections[] = [
                         'id' => $main->id,
                         'name' => $main->name,
                         'slug' => $main->slug,
@@ -147,13 +210,12 @@ class LandingController extends Controller
                         'products' => $products
                     ];
                 }
-               
             }
 
 
             return response()->json([
                 'logo' => asset('temp/logo/logo.png'),
-                'store' => Store::active()->select('id','name','code', 'latitude', 'longitude', 'delivery_radius_km')->first(),
+                'store' => Store::active()->select('id', 'name', 'code', 'latitude', 'longitude', 'delivery_radius_km')->first(),
                 'main_banner' => ['id' => 1, 'image' => asset('temp/banner/main-banner.webp'), 'url' => '/category/fruits'],
                 'slider_banners' => [
                     ['id' => 1, 'image' => asset('temp/slider/slider1.avif'), 'url' => '/category/fruits'],
@@ -169,7 +231,7 @@ class LandingController extends Controller
                         ['name' => 'Privacy Policy', 'url' => '/privacy-policy'],
                         ['name' => 'Terms of Service', 'url' => '/terms-of-service'],
                     ],
-                   'categories' => Category::active()->level('main')->orderBy('sort_order')->select('id','name','slug')->inRandomOrder()->take(30)->get()
+                    // 'categories' => Category::active()->level('main')->orderBy('sort_order')->select('id', 'name', 'slug')->inRandomOrder()->take(30)->get()
                 ]
             ]);
         });
@@ -190,8 +252,14 @@ class LandingController extends Controller
                 }
             ])
             ->select(
-                'id','name','slug','icon','image',
-                'meta_title','meta_description','meta_keywords'
+                'id',
+                'name',
+                'slug',
+                'icon',
+                'image',
+                'meta_title',
+                'meta_description',
+                'meta_keywords'
             )
             ->first();
 
@@ -236,11 +304,11 @@ class LandingController extends Controller
             ->where('is_active', true)
             ->with([
                 'images' => fn($q) => $q->where('is_primary', true)
-                    ->select('id','product_id','image'),
+                    ->select('id', 'product_id', 'image'),
                 'variants' => fn($q) => $q->where('is_default', true)
-                    ->select('id','product_id','pack_size','unit','cost_price','tax_percent','selling_price','mrp'),
+                    ->select('id', 'product_id', 'pack_size', 'unit', 'cost_price', 'tax_percent', 'selling_price', 'mrp'),
             ])
-            ->select('id','category_id','name','slug','short_description')
+            ->select('id', 'category_id', 'name', 'slug', 'short_description')
             ->get();
 
         // 🔥 Group products by subcategory
@@ -287,7 +355,7 @@ class LandingController extends Controller
                                     ? round((($v->mrp - $v->selling_price) / $v->mrp) * 100)
                                     : 0,
                             ];
-                         })
+                        })
                     ];
                 })
                 ->filter()
