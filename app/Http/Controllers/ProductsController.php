@@ -202,16 +202,16 @@ class ProductsController extends Controller
             DB::commit();
 
             Log::info('🎉 Product Creation Completed Successfully');
-            // return redirect()
-            //     ->route('/products')
-            //     ->with('success', 'Product created successfully.');
 
-            return response()->json([
-                'success' => true,
-                'redirect' => route('products.index')
-            ]);
-        } 
-        catch (\Throwable $e) {
+            return redirect()
+                ->route('products.index')
+                ->with('success', 'Product created successfully.');
+
+            // return response()->json([
+            //     'success' => true,
+            //     'redirect' => route('products.index')
+            // ]);
+        } catch (\Throwable $e) {
 
             DB::rollBack();
 
@@ -276,10 +276,12 @@ class ProductsController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        Log::info('🔄 Product Update Request', ['data' => $request->all()]);
+
         $product = Product::with('variants.images', 'attributes', 'images')->findOrFail($id);
 
         // ============================
-        // 1️⃣ VALIDATION
+        // 1️⃣ VALIDATION (FIXED)
         // ============================
 
         $validated = $request->validate([
@@ -289,7 +291,10 @@ class ProductsController extends Controller
             'brand_id'    => 'required|exists:brands,id',
 
             'variants' => 'required|array|min:1',
+
             'variants.*.sku' => 'required|string|max:255',
+            'variants.*.pack_size' => 'sometimes|required|string|max:50',
+            'variants.*.unit' => 'sometimes|required|string|max:20',
             'variants.*.mrp' => 'required|numeric|min:0',
             'variants.*.selling_price' => 'required|numeric|min:0',
         ]);
@@ -307,15 +312,17 @@ class ProductsController extends Controller
                 'slug'        => $validated['slug'],
                 'category_id' => $validated['category_id'],
                 'brand_id'    => $validated['brand_id'],
-
                 'short_description' => $request->short_description,
                 'description'       => $request->description,
-
                 'is_active' => $request->boolean('is_active'),
+                'is_featured'   => $request->boolean('is_featured'),
+                'is_new'        => $request->boolean('is_new'),
+                'is_bestseller' => $request->boolean('is_bestseller'),
+                'show_out_of_stock' => $request->boolean('show_out_of_stock'),
             ]);
 
             // ============================
-            // 3️⃣ PRODUCT IMAGES (DELETE REMOVED)
+            // 3️⃣ PRODUCT IMAGES
             // ============================
 
             $existingImageIds = $request->input('existing_product_images', []);
@@ -327,7 +334,6 @@ class ProductsController extends Controller
                 }
             }
 
-            // ADD NEW IMAGES
             if ($request->hasFile('product_images')) {
                 foreach ($request->file('product_images') as $i => $image) {
                     $path = $image->store('products/images', 'public');
@@ -342,64 +348,71 @@ class ProductsController extends Controller
             }
 
             // ============================
-            // 4️⃣ VARIANTS (SYNC LOGIC)
+            // 4️⃣ VARIANTS (FIXED)
             // ============================
 
             $existingVariantIds = [];
 
-            foreach ($validated['variants'] as $variantData) {
+            foreach ($request->variants as $index => $variantData) {
 
-                // UPDATE if exists
+                Log::info('🔄 Processing Variant', ['index' => $index, 'data' => $variantData]);
+
+                // Skip invalid variant safely
+                if (empty($variantData['sku'])) {
+                    Log::warning('⚠️ Skipping variant without SKU', $variantData);
+                    continue;
+                }
+
+                $variantPayload = [
+                    'sku'           => $variantData['sku'],
+                    'barcode'       => $variantData['barcode'] ?? null,
+                    'pack_size'     => $variantData['pack_size'] ?? null,
+                    'unit'          => $variantData['unit'] ?? null,
+                    'mrp'           => $variantData['mrp'] ?? 0,
+                    'selling_price' => $variantData['selling_price'] ?? 0,
+                    'cost_price'    => $variantData['cost_price'] ?? null,
+                    'tax_percent'   => $variantData['tax_percent'] ?? null,
+                    'is_default'    => !empty($variantData['is_default']),
+                    'is_active'     => !empty($variantData['is_active']),
+                ];
+
+                // UPDATE
                 if (!empty($variantData['id'])) {
 
                     $variant = ProductVariant::find($variantData['id']);
 
                     if ($variant) {
-                        $variant->update([
-                            'sku'           => $variantData['sku'],
-                            'barcode'       => $variantData['barcode'] ?? null,
-                            'pack_size'     => $variantData['pack_size'],
-                            'unit'          => $variantData['unit'],
-                            'mrp'           => $variantData['mrp'],
-                            'selling_price' => $variantData['selling_price'],
-                            'cost_price'    => $variantData['cost_price'] ?? null,
-                            'tax_percent'   => $variantData['tax_percent'] ?? null,
-                            'is_default'    => !empty($variantData['is_default']),
-                            'is_active'     => !empty($variantData['is_active']),
-                        ]);
-
+                        $variant->update($variantPayload);
                         $existingVariantIds[] = $variant->id;
                     }
                 } else {
 
-                    // CREATE NEW
-                    $variant = ProductVariant::create([
-                        'product_id'     => $product->id,
-                        'sku'            => $variantData['sku'],
-                        'barcode'        => $variantData['barcode'] ?? null,
-                        'pack_size'      => $variantData['pack_size'],
-                        'unit'           => $variantData['unit'],
-                        'mrp'            => $variantData['mrp'],
-                        'selling_price'  => $variantData['selling_price'],
-                        'cost_price'     => $variantData['cost_price'] ?? null,
-                        'tax_percent'    => $variantData['tax_percent'] ?? null,
-                        'is_default'     => !empty($variantData['is_default']),
-                        'is_active'      => !empty($variantData['is_active']),
-                    ]);
+                    // CREATE
+                    $variantPayload['product_id'] = $product->id;
+
+                    $variant = ProductVariant::create($variantPayload);
 
                     $existingVariantIds[] = $variant->id;
                 }
 
+                // ============================
                 // VARIANT IMAGES
-                if (isset($variantData['images'])) {
-                    foreach ($variantData['images'] as $i => $image) {
-                        $path = $image->store('products/variants', 'public');
+                // ============================
 
-                        ProductVariantImage::create([
-                            'product_variant_id' => $variant->id,
-                            'image' => $path,
-                            'is_primary' => $i === 0,
-                        ]);
+                if (!empty($variantData['images'])) {
+
+                    foreach ($variantData['images'] as $i => $image) {
+
+                        if ($image instanceof \Illuminate\Http\UploadedFile) {
+
+                            $path = $image->store('products/variants', 'public');
+
+                            ProductVariantImage::create([
+                                'product_variant_id' => $variant->id,
+                                'image' => $path,
+                                'is_primary' => $i === 0,
+                            ]);
+                        }
                     }
                 }
             }
@@ -410,17 +423,20 @@ class ProductsController extends Controller
                 ->delete();
 
             // ============================
-            // 5️⃣ ATTRIBUTES (RESET & INSERT)
+            // 5️⃣ ATTRIBUTES
             // ============================
 
             $product->attributes()->delete();
 
-            if (!empty($validated['attributes'])) {
-                foreach ($validated['attributes'] as $attr) {
+            if (!empty($request->attributes)) {
+                foreach ($request->attributes as $attr) {
+
+                    if (empty($attr['attribute_key'])) continue;
+
                     ProductAttribute::create([
                         'product_id' => $product->id,
                         'attribute_key' => $attr['attribute_key'],
-                        'attribute_value' => $attr['attribute_value'],
+                        'attribute_value' => $attr['attribute_value'] ?? null,
                         'is_filterable' => !empty($attr['is_filterable']),
                         'is_visible' => !empty($attr['is_visible']),
                     ]);
@@ -428,7 +444,7 @@ class ProductsController extends Controller
             }
 
             // ============================
-            // 6️⃣ COMPLIANCE (UPDATE OR CREATE)
+            // 6️⃣ COMPLIANCE
             // ============================
 
             $product->compliance()->updateOrCreate(
@@ -446,15 +462,19 @@ class ProductsController extends Controller
 
             DB::commit();
 
+            Log::info('✅ Product updated successfully', ['product_id' => $product->id]);
+
             return redirect()->route('products.index')
-                ->with('success', 'Product updated successfully');
+                ->with('success', 'Product updated successfully')->with('debug', 'reached');
+
         } catch (\Throwable $e) {
 
             DB::rollBack();
 
-            Log::error('Product update failed', [
+            Log::error('❌ Product update failed', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
             ]);
 
             return back()->withInput()->withErrors([
@@ -462,6 +482,7 @@ class ProductsController extends Controller
             ]);
         }
     }
+
 
     /**
      * Remove the specified resource from storage.

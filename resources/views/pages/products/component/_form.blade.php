@@ -168,7 +168,6 @@ $isEdit = isset($product);
 
         <div class="card-body">
             <div class="row g-3">
-
                 @php
                 $flags = [
                 'is_perishable' => [
@@ -380,7 +379,6 @@ $isEdit = isset($product);
                         </div>
                     </div>
                 </template>
-
             </div>
         </div>
     </div>

@@ -274,7 +274,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     form.addEventListener("submit", function (e) {
 
-        e.preventDefault();
+        // e.preventDefault();
 
         const submitBtn = form.querySelector("button[type='submit']");
         const formData = new FormData(form);

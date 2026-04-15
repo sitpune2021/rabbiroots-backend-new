@@ -212,7 +212,6 @@ class LandingController extends Controller
                 }
             }
 
-
             return response()->json([
                 'logo' => asset('temp/logo/logo.png'),
                 'store' => Store::active()->select('id', 'name', 'code', 'latitude', 'longitude', 'delivery_radius_km')->first(),
