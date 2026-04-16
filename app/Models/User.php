@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Permission\Traits\HasRoles;
 use Laravel\Sanctum\HasApiTokens;
 
+
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -35,13 +36,15 @@ class User extends Authenticatable
         'last_login_at',
         'last_login_ip',
         'email_verified_at',
+        'otp_verified',
+        'is_delete_requested'
     ];
 
 
     protected $casts = [
         'battery_updated_at' => 'datetime',
     ];
-
+    protected $dates = ['deleted_at'];
     /**
      * The attributes that should be hidden for serialization.
      *

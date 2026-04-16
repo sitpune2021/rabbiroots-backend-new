@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\{CategoryController, CustomerAddressController, DashboardController, LandingController, DeliveryAgentController, GofrugalController, OrderController, ProductController, RatingController, ReviewController, WishlistController};
+use App\Http\Controllers\Api\{AccountDeletionController, CategoryController, CustomerAddressController, DashboardController, LandingController, DeliveryAgentController, GofrugalController, OrderController, ProductController, RatingController, ReviewController, WishlistController};
 use App\Http\Controllers\Api\Auth\CustomerAuthController;
 use App\Http\Controllers\Api\Auth\DriverAuthController;
 use App\Http\Controllers\Api\Customer\CartController;
@@ -88,6 +88,13 @@ Route::prefix('customer')->group(function () {
         Route::post('/add-to-cart', [CartController::class, 'addToCart']);
         Route::post('/cart/update-quantity', [CartController::class, 'updateQuantity']);
         Route::get('view-cart', [CartController::class, 'viewCart']);
+
+        // Account deletion
+        // Route::middleware('auth:sanctum')->group(function () {
+            Route::post('/account/delete-request', [AccountDeletionController::class, 'requestDeletion']);
+            Route::post('/account/send-otp', [AccountDeletionController::class, 'sendDeleteOtp']);
+            Route::post('/account/verify-otp', [AccountDeletionController::class, 'verifyDeleteOtp']);
+        // });
     });
 
     Route::get('/products/{id}/similar', [ProductController::class, 'getSimilarProducts']);

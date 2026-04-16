@@ -48,6 +48,13 @@ class CustomerAuthController extends Controller
             ]);
 
             $user = User::where('phone', $request->phone)->first();
+            
+            if ($user->is_delete_requested == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Account scheduled for deletion'
+                ], 403);
+            }
 
             if (!$user) {
 
